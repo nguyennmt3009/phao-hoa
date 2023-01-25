@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: black;
+            height: 97vh;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks"></canvas>
+</body>
+<script>
+    var canvas = document.getElementById("fireworks");
+    canvas.width = document.body.clientWidth;
+    canvas.height = document.body.clientHeight;
+    var ctx = canvas.getContext("2d");
+
+    // create a particle object
+    function Particle(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = Math.random() * 2 + 1;
+        this.color = "rgb(" + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")";
+        this.velocity = {
+            x: Math.random() * 3 - 1.5,
+            y: Math.random() * 3 - 1.5
+        };
+        this.acceleration = {
+            x: 0,
+            y: 0.05
+        };
+    }
+
+    // update the particle's position
+    Particle.prototype.update = function() {
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        this.velocity.x += this.acceleration.x;
+        this.velocity.y += this.acceleration.y;
+    }
+
+    // draw the particle on the canvas
+    Particle.prototype.draw = function() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+    }
+
+    // create an array to hold the particles
+    var particles = [];
+
+    // create the particle effect at the mouse pointer
+    document.addEventListener("mousemove", function(event) {
+        var particle = new Particle(event.clientX, event.clientY);
+        particles.push(particle);
+    });
+
+    // animate the particles
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+        }
+    }
+    animate();
+
+</script>
+</html>
