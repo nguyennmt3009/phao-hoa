@@ -1,1 +1,1 @@
-web: node index.html
+web: python -m http.server $PORT
