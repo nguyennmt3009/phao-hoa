@@ -17,7 +17,7 @@
     </style>
 </head>
 <body>
-    <p id="particleNum">0</p>
+    <p id="particleNum">Press Enter to play/stop</p>
     <canvas id="fireworks"></canvas>
 </body>
 <script>
@@ -31,30 +31,37 @@
     var lastColor = getRandomColor();
     var nextColor = getRandomColor();
     var currentColor = getRandomColor();
-    var lastColorX = null;
 
-    var particleGenerate = 3;
+    var particleGenerate = 30;
+    var particleRound = 15;
+
+    var autoFire = false;
 
     // create a particle object
-    function Particle(x, y, color) {
+    function Particle(x, y, color, style) {
         this.x = x;
         this.y = y;
-        this.radius = Math.random() * 4 + 1;
         this.color = color;
         this.opacity = 1;
-
-        let angle = Math.PI * 2 * Math.random();
-        this.velocity = {
-            x: Math.random() * 3 - 1.5,
-            y: Math.random() * 3 - 3.5
-        };
-        // this.velocity = {
-        //     x: Math.random() * 1 - 1.5,
-        //     y: Math.random() * 1 - 1.5
-        // };
-
-        // this.velocity.x *= Math.cos(angle);
-        // this.velocity.y *= Math.sin(angle);
+        this.style = 1;
+        
+        if (this.style == 1) {
+            this.radius = Math.random() * 4 + 1;
+            let angle = Math.PI * 2 * Math.random();
+            this.velocity = {
+                x: Math.random() - 3,
+                y: Math.random() - 3.5
+            };
+            
+            this.velocity.x *= Math.cos(angle);
+            this.velocity.y *= Math.sin(angle);
+        } else {
+            this.radius = Math.random() * 8 + 1;
+            this.velocity = {
+                x: Math.random() * 3 - 1.5,
+                y: Math.random() * 3 - 3.5
+            };
+        }
         
         this.acceleration = {
             x: 0,
@@ -103,43 +110,100 @@
     setInterval(function() {
         // Calculate the new color based on the destination color
         let changeColor = JSON.parse(JSON.stringify(currentColor));
-        changeColor.r += nextColor.r > lastColor.r ? 1 : -1;
-        changeColor.g += nextColor.g > lastColor.g ? 1 : -1;
-        changeColor.b += (nextColor.b > lastColor.b ? 1 : -1);
+        let n = 3;
+        changeColor.r += nextColor.r > lastColor.r ? n : -n;
+        changeColor.g += nextColor.g > lastColor.g ? n : -n;
+        changeColor.b += nextColor.b > lastColor.b ? n : -n;
 
         currentColor = changeColor;
-    }, 100);
+    }, 20);
 
     // generate a new random color every 3 seconds
     setInterval(function() {
         lastColor = currentColor;
         nextColor = getRandomColor();
-    }, 3000);
+    }, 200);
 
     // generate random color
     function getRandomColor() {
         return {
-            r: Math.floor(Math.random() * 155 + 100),
-            g: Math.floor(Math.random() * 155 + 100),
-            b: Math.floor(Math.random() * 155 + 100)
+            r: Math.floor(Math.random() * 255 + 0),
+            g: Math.floor(Math.random() * 255 + 0),
+            b: Math.floor(Math.random() * 255 + 0)
         };
     }
+    // function getRandomColor() {
+    //     return {
+    //         r: Math.floor(Math.random() * 155 + 100),
+    //         g: Math.floor(Math.random() * 155 + 100),
+    //         b: Math.floor(Math.random() * 155 + 100)
+    //     };
+    // }
 
     // create the particle effect at the mouse pointer
-    document.addEventListener("mousemove", function(event) {
-        if (
-            lastColor == null ||
-            lastColorX == null
-        ) {
+    document.addEventListener("click", function(event) {
+        if (lastColor == null) {
             lastColor = getRandomColor();
             currentColor = lastColor;
-            lastColorX = event.clientX;
         }
         
         for (let i = 0; i < particleGenerate; i++) {
-            particles.push(new Particle(event.clientX, event.clientY - 50, currentColor));
+            for (let j = 0; j < particleRound; j++) {
+                setTimeout(() => {
+                    particles.push(new Particle(event.clientX, event.clientY - 50, currentColor));
+                }, 100 * j);
+            }
         }
     });
+    
+    document.addEventListener("keydown", function(event) {
+        if (event.keyCode === 13) {
+            autoFire = !autoFire;
+            particleNum.textContent = '';
+        }
+    });
+
+    setInterval(() => {
+        if (autoFire) {
+            var centerX = window.innerWidth / 2;
+            var centerY = window.innerHeight / 2 - 50;
+
+            let n = 300;
+            var minX = centerX - n;
+            var minY = centerY - n;
+            var maxX = centerX + n;
+            var maxY = centerY + n;
+
+            var x = Math.floor(Math.random() * (maxX - minX)) + minX;
+            var y = Math.floor(Math.random() * (maxY - minY)) + minY;
+            if (lastColor == null) {
+                lastColor = getRandomColor();
+                currentColor = lastColor;
+            }
+
+            let rand = Math.random();
+
+            if(rand < 0.3) {
+                let audio = new Audio('fireworks.mp3');
+                audio.play();
+            } else if (rand < 0.5) {
+                let audio = new Audio('firework-crackling.mp3');
+                audio.play();
+            }
+
+            let randRound = Math.floor(Math.random() * particleRound) + 1;
+            
+            for (let i = 0; i < particleGenerate; i++) {
+                for (let j = 0; j < randRound; j++) {
+                    setTimeout(() => {
+                        particles.push(new Particle(x, y, currentColor, rand < 0.3 ? 2 : 1));
+                    }, 10 * j * randRound);
+                }
+            }
+        }
+    }, 1000)
+
+        
 
     // animate the particles
     function animate() {
@@ -159,7 +223,11 @@
                 i--;
             }
         }
-        particleNum.textContent = `${particles.length}`;
+        if (particles.length > 800) {
+            const del = particles.sort(() => 0.5 - Math.random()).slice(0, 400);
+            particles = particles.filter((el) => !del.includes(el));
+        }
+        // particleNum.textContent = `${particles.length}`;
         // particleNum.textContent = particles.length;
     }
     animate();
