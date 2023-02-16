@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flappy Bird Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="320" height="480"></canvas>
+    <script>
+        var canvas = document.getElementById("canvas");
+        var context = canvas.getContext("2d");
+
+        // Set up the initial game state
+        var bird = {
+            x: 50,
+            y: 200,
+            size: 25,
+            velocity: 0,
+            gravity: 0.5
+        };
+        var pipes = [];
+        var score = 0;
+
+        // Define a function to draw the bird
+        function drawBird() {
+            context.fillStyle = "yellow";
+            context.fillRect(bird.x, bird.y, bird.size, bird.size);
+        }
+
+        // Define a function to update the game state
+        function update() {
+            // Update the bird's position and velocity
+            bird.y += bird.velocity;
+            bird.velocity += bird.gravity;
+
+            // Check for collision with pipes
+            for (var i = 0; i < pipes.length; i++) {
+                var pipe = pipes[i];
+                if (bird.x + bird.size > pipe.x && bird.x < pipe.x + pipe.width &&
+                    (bird.y < pipe.top || bird.y + bird.size > pipe.top + pipe.gap)) {
+                    // Game over
+                    alert("Game over! Your score is " + score);
+                    location.reload();
+                }
+            }
+
+            // Remove pipes that have gone off the screen
+            if (pipes.length > 0 && pipes[0].x + pipes[0].width < 0) {
+                pipes.shift();
+                score++;
+            }
+
+            // Add a new pipe every 80 frames
+            if (frames % 80 === 0) {
+                var gap = Math.floor(Math.random() * 200) + 50;
+                pipes.push({
+                    x: 320,
+                    top: 0,
+                    gap: gap,
+                    width: 50,
+                    bottom: gap + 150
+                });
+            }
+
+            // Update the position of the pipes
+            for (var i = 0; i < pipes.length; i++) {
+                pipes[i].x -= 2;
+            }
+
+            // Clear the canvas and redraw everything
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawBird();
+            for (var i = 0; i < pipes.length; i++) {
+                context.fillStyle = "green";
+                context.fillRect(pipes[i].x, 0, pipes[i].width, pipes[i].top);
+                context.fillRect(pipes[i].x, pipes[i].bottom, pipes[i].width, canvas.height - pipes[i].bottom);
+            }
+            context.fillStyle = "black";
+            context.font = "24px Arial";
+            context.fillText("Score: " + score, 10, 30);
+
+        }
+        
+        // Handle keyboard input
+        window.addEventListener("keydown", function(event) {
+            if (event.keyCode === 32) {
+                bird.velocity = -10;
+            }
+        });
+
+        // Set up the game loop
+        var frames = 0;
+        setInterval(function() {
+            update();
+            frames++;
+        }, 20);
+    </script>
+</body>
+</html>

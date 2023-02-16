@@ -10,9 +10,14 @@
             background-color: black;
             height: 97vh;
         }
+        
+        #particleNum {
+            color: white;
+        }
     </style>
 </head>
 <body>
+    <p id="particleNum">0</p>
     <canvas id="fireworks"></canvas>
 </body>
 <script>
@@ -21,16 +26,36 @@
     canvas.height = document.body.clientHeight;
     var ctx = canvas.getContext("2d");
 
+    var particleNum = document.getElementById("particleNum");
+
+    var lastColor = getRandomColor();
+    var nextColor = getRandomColor();
+    var currentColor = getRandomColor();
+    var lastColorX = null;
+
+    var particleGenerate = 3;
+
     // create a particle object
-    function Particle(x, y) {
+    function Particle(x, y, color) {
         this.x = x;
         this.y = y;
-        this.radius = Math.random() * 2 + 1;
-        this.color = "rgb(" + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ", " + Math.floor(Math.random() * 255) + ")";
+        this.radius = Math.random() * 4 + 1;
+        this.color = color;
+        this.opacity = 1;
+
+        let angle = Math.PI * 2 * Math.random();
         this.velocity = {
             x: Math.random() * 3 - 1.5,
-            y: Math.random() * 3 - 1.5
+            y: Math.random() * 3 - 3.5
         };
+        // this.velocity = {
+        //     x: Math.random() * 1 - 1.5,
+        //     y: Math.random() * 1 - 1.5
+        // };
+
+        // this.velocity.x *= Math.cos(angle);
+        // this.velocity.y *= Math.sin(angle);
+        
         this.acceleration = {
             x: 0,
             y: 0.05
@@ -47,19 +72,73 @@
 
     // draw the particle on the canvas
     Particle.prototype.draw = function() {
+        // Create a new radial gradient to draw the particle
+        var gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+
+        // Add the color stops to the gradient
+        gradient.addColorStop(0, toRGBA({r: 255,g: 255,b: 255}, 1 -  (1 - this.opacity)));
+        gradient.addColorStop(0.5, toRGBA(this.color, 1 -  (1 - this.opacity)));
+        gradient.addColorStop(1, toRGBA(this.color, 0));
+        
+        // Set the fill style to the gradient
+        ctx.fillStyle = gradient;
+        
+        // Draw the particle
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-        ctx.fillStyle = this.color;
         ctx.fill();
+
+        this.opacity -= 0.005;
+    }
+
+    // Function to create rgba color string
+    function toRGBA(rgb, a) {
+        return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${a})`;
     }
 
     // create an array to hold the particles
     var particles = [];
 
+    // change current color every 1 seconds
+    setInterval(function() {
+        // Calculate the new color based on the destination color
+        let changeColor = JSON.parse(JSON.stringify(currentColor));
+        changeColor.r += nextColor.r > lastColor.r ? 1 : -1;
+        changeColor.g += nextColor.g > lastColor.g ? 1 : -1;
+        changeColor.b += (nextColor.b > lastColor.b ? 1 : -1);
+
+        currentColor = changeColor;
+    }, 100);
+
+    // generate a new random color every 3 seconds
+    setInterval(function() {
+        lastColor = currentColor;
+        nextColor = getRandomColor();
+    }, 3000);
+
+    // generate random color
+    function getRandomColor() {
+        return {
+            r: Math.floor(Math.random() * 155 + 100),
+            g: Math.floor(Math.random() * 155 + 100),
+            b: Math.floor(Math.random() * 155 + 100)
+        };
+    }
+
     // create the particle effect at the mouse pointer
     document.addEventListener("mousemove", function(event) {
-        var particle = new Particle(event.clientX, event.clientY);
-        particles.push(particle);
+        if (
+            lastColor == null ||
+            lastColorX == null
+        ) {
+            lastColor = getRandomColor();
+            currentColor = lastColor;
+            lastColorX = event.clientX;
+        }
+        
+        for (let i = 0; i < particleGenerate; i++) {
+            particles.push(new Particle(event.clientX, event.clientY - 50, currentColor));
+        }
     });
 
     // animate the particles
@@ -69,7 +148,19 @@
         for (var i = 0; i < particles.length; i++) {
             particles[i].update();
             particles[i].draw();
+            // Remove the particle if it goes out of the screen
+            if (
+                particles[i].x < -50 ||
+                particles[i].x > canvas.width + 50 ||
+                particles[i].y < -50 ||
+                particles[i].y > canvas.height + 50
+            ) {
+                particles.splice(i, 1);
+                i--;
+            }
         }
+        particleNum.textContent = `${particles.length}`;
+        // particleNum.textContent = particles.length;
     }
     animate();
 
