@@ -223,5 +223,12 @@
     }
     animate();
 
+    // press p to go to flappy bird file
+    document.addEventListener("keydown", function(event) {
+        if (event.keyCode === 80) {
+            window.location.href = "flappy.html";
+        }
+    });
+
 </script>
 </html>
