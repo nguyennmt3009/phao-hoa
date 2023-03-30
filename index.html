@@ -18,6 +18,7 @@
 </head>
 <body>
     <p id="particleNum">Press Enter to play/stop</p>
+    <p id="particleNum">Press F to play Flappy Bird</p>
     <canvas id="fireworks"></canvas>
 </body>
 <script>
@@ -223,10 +224,11 @@
     }
     animate();
 
-    // press p to go to flappy bird file
+    // press f to go to flappy bird file
     document.addEventListener("keydown", function(event) {
+        console.log('Flappy Bird');
         if (event.keyCode === 80) {
-            window.location.href = "flappy.html";
+            window.location.href = "flappy-bird.html";
         }
     });
 
