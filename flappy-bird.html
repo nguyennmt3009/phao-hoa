@@ -37,7 +37,7 @@
             height: 30px;
             background-color: #FF5722;
             bottom: 100px;
-            left: 220px;
+            left: 120px;
             z-index: 1; 
         }
 
@@ -144,7 +144,7 @@
         let isGameStarted = false;
 
         const gravity = 0.5;
-        let birdLeft = 220;
+        let birdLeft = 120;
         let birdBottom = 100;
         let gravitySpeed = 0;
         var isGameOver = false;
@@ -265,7 +265,7 @@
                 }
 
                 // increase score
-                if (obstacleLeft === 220) {
+                if (obstacleLeft === 120) {
                     score.text(parseInt(score.text()) + 1);
                     // if score increases by 2 increase obstacle speed
                     if (score.text() % 2 === 0) {
