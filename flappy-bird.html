@@ -179,6 +179,9 @@
 
         $(document).keydown(control);
 
+        // if mobile, use touch event
+        $(document).on('touchstart', jump);
+
         function generateObstacle() {
             let obstacleLeft = 500;
             let randomHeight = Math.random() * 300;

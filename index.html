@@ -36,6 +36,11 @@
     var particleGenerate = 30;
     var particleRound = 15;
 
+    // if mobile device, set particleGenerate to 10
+    if (canvas.width < 500) {
+        particleGenerate = 10;
+    }
+
     var autoFire = false;
 
     // create a particle object
@@ -145,6 +150,22 @@
             for (let j = 0; j < particleRound; j++) {
                 setTimeout(() => {
                     particles.push(new Particle(event.clientX, event.clientY - 50, currentColor));
+                }, 100 * j);
+            }
+        }
+    });
+
+    // if mobile device, create the particle effect at the touch pointer
+    document.addEventListener("touchstart", function(event) {
+        if (lastColor == null) {
+            lastColor = getRandomColor();
+            currentColor = lastColor;
+        }
+        
+        for (let i = 0; i < particleGenerate; i++) {
+            for (let j = 0; j < particleRound; j++) {
+                setTimeout(() => {
+                    particles.push(new Particle(event.touches[0].clientX, event.touches[0].clientY - 50, currentColor));
                 }, 100 * j);
             }
         }
