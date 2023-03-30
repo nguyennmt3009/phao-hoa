@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Firework</title>
     <style>
         body {
             background-color: black;
@@ -18,7 +18,6 @@
 </head>
 <body>
     <p id="particleNum">Press Enter to play/stop</p>
-    <p id="particleNum">Press F to play Flappy Bird</p>
     <canvas id="fireworks"></canvas>
 </body>
 <script>
@@ -39,6 +38,7 @@
     // if mobile device, set particleGenerate to 10
     if (canvas.width < 500) {
         particleGenerate = 10;
+        particleRound = 5;
     }
 
     var autoFire = false;
@@ -86,15 +86,19 @@
     // draw the particle on the canvas
     Particle.prototype.draw = function() {
         // Create a new radial gradient to draw the particle
-        var gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+        if (canvas.width > 500) {
+            var gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
 
-        // Add the color stops to the gradient
-        gradient.addColorStop(0, toRGBA({r: 255,g: 255,b: 255}, 1 -  (1 - this.opacity)));
-        gradient.addColorStop(0.5, toRGBA(this.color, 1 -  (1 - this.opacity)));
-        gradient.addColorStop(1, toRGBA(this.color, 0));
-        
-        // Set the fill style to the gradient
-        ctx.fillStyle = gradient;
+            // Add the color stops to the gradient
+            gradient.addColorStop(0, toRGBA({r: 255,g: 255,b: 255}, 1 -  (1 - this.opacity)));
+            gradient.addColorStop(0.5, toRGBA(this.color, 1 -  (1 - this.opacity)));
+            gradient.addColorStop(1, toRGBA(this.color, 0));
+            
+            // Set the fill style to the gradient
+            ctx.fillStyle = gradient;
+        } else {
+            ctx.fillStyle = toRGBA(this.color, 0);
+        }
         
         // Draw the particle
         ctx.beginPath();
@@ -198,12 +202,15 @@
 
             let rand = Math.random();
 
-            if(rand < 0.3) {
-                let audio = new Audio('fireworks.mp3');
-                audio.play();
-            } else if (rand < 0.5) {
-                let audio = new Audio('firework-crackling.mp3');
-                audio.play();
+            // if not mobile device, play sound
+            if (canvas.width > 500) {
+                if(rand < 0.3) {
+                    let audio = new Audio('fireworks.mp3');
+                    audio.play();
+                } else if (rand < 0.5) {
+                    let audio = new Audio('firework-crackling.mp3');
+                    audio.play();
+                }
             }
 
             let randRound = Math.floor(Math.random() * particleRound) + 1;
