@@ -150,6 +150,9 @@
         var isGameOver = false;
         var isGamePaused = false;
 
+        // set bird image
+        // bird.css('background-image', 'url(https://i.imgur.com/9cQ0XQ2.png)');
+
         function startGame() {
             birdBottom -= gravitySpeed;
             bird.css('bottom', birdBottom + 'px');
@@ -188,7 +191,7 @@
         }
 
         $(document).keydown(function(e) {
-            if (e.keyCode == 32) {
+            if (e.keyCode == 32 || e.keyCode == 13) {
                 control();
             }
         });
