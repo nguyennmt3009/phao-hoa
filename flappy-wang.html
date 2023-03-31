@@ -317,8 +317,6 @@
                     // if score increases by 2 increase obstacle speed
                     if (score.text() % 2 === 0) {
                         if (obstacleGenerationTimer > 1700) {
-                            console.log('obstacle speed: ' + obstacleSpeed);
-                            console.log('obstacle generation timer: ' + obstacleGenerationTimer);
                             obstacleSpeed -= 1;
                             obstacleGenerationTimer -= 100;
                         }
@@ -330,7 +328,6 @@
             var timerId = setInterval(moveObstacle, obstacleSpeed);
 
             if (!this.isGameOver && !isGamePaused) {
-                console.log('generate obstacle timeout')
                 let timeout = setTimeout(generateObstacle, obstacleGenerationTimer);
                 timeoutArr.push(timeout);
             }

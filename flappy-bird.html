@@ -58,6 +58,15 @@
             color: #000;
         }
 
+        .maxScore {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #000;
+        }
+
         #gameOver {
             position: absolute;
             top: 50%;
@@ -133,6 +142,7 @@
 <body>
     <div class="container">
         <h1 class="score">Score: <span id="score">0</span></h1>
+        <h2 class="maxScore">Max score: <span id="maxScore">0</span></h2>
         <div class="game">
             <div class="bird"></div>
             <div id="gameOver">
@@ -152,6 +162,7 @@
         const bird = $('.bird');
         const gameDisplay = $('.game');
         const score = $('#score');
+        const maxScore = $('#maxScore');
         const restartBtn = $('#restart-btn');
         let obstacleSpeed = 20;
         let obstacleGenerationTimer = 3000;
@@ -165,8 +176,13 @@
         var isGameOver = false;
         var isGamePaused = false;
 
-        // set bird image
-        // bird.css('background-image', 'url(https://i.imgur.com/9cQ0XQ2.png)');
+        // set max score
+        if (localStorage.getItem('maxScore') === null) {
+            localStorage.setItem('maxScore', 0);
+            maxScore.text(localStorage.getItem('maxScore'));
+        } else {
+            maxScore.text(localStorage.getItem('maxScore'));
+        }
 
         function startGame() {
             birdBottom -= gravitySpeed;
@@ -293,11 +309,15 @@
                     // if score increases by 2 increase obstacle speed
                     if (score.text() % 2 === 0) {
                         if (obstacleGenerationTimer > 1700) {
-                            console.log('obstacle speed: ' + obstacleSpeed);
-                            console.log('obstacle generation timer: ' + obstacleGenerationTimer);
                             obstacleSpeed -= 1;
                             obstacleGenerationTimer -= 100;
                         }
+                    }
+                    
+                    // store maxScore to local storage
+                    if (parseInt(score.text()) > parseInt(maxScore.text())) {
+                        localStorage.setItem('maxScore', score.text());
+                        maxScore.text(localStorage.getItem('maxScore'));
                     }
                     
                 }
@@ -306,7 +326,6 @@
             var timerId = setInterval(moveObstacle, obstacleSpeed);
 
             if (!this.isGameOver && !isGamePaused) {
-                console.log('generate obstacle timeout')
                 let timeout = setTimeout(generateObstacle, obstacleGenerationTimer);
                 timeoutArr.push(timeout);
             }
