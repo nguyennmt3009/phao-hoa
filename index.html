@@ -185,12 +185,14 @@
 
         // check element particleNum exist or not
         if (document.getElementById('particleNum')) {
+            console.log('particleNum element exist');
             // send gtag event to know particleNum element exist
             gtag('event', 'particleNum', {
                 'event_category': 'particleNum',
                 'event_label': 'exist'
             });
         } else {
+            console.log('particleNum element not exist');
             // send gtag event to know particleNum element not exist
             gtag('event', 'particleNum', {
                 'event_category': 'particleNum',
