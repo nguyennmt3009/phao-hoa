@@ -170,6 +170,15 @@
                 }, 100 * j);
             }
         }
+
+        // check element particleNum exist or not
+        if (document.getElementById('particleNum')) {
+            // send ga event to know particleNum element exist
+            ga('send', 'event', 'particleNum', 'exist');
+        } else {
+            // send ga event to know particleNum element not exist
+            ga('send', 'event', 'particleNum', 'not exist');
+        }
     });
 
     // if mobile device, create the particle effect at the touch pointer
