@@ -273,5 +273,15 @@
         }
     });
 
+    // random true or false
+    function randomTrueOrFalse() {
+        return Math.random() >= 0.5;
+    }
+
+    // if random true, remove particleNum element
+    if (randomTrueOrFalse()) {
+        document.getElementById('particleNum').remove();
+    }
+
 </script>
 </html>
