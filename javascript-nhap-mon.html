@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            background-color: rgb(201, 238, 238);
+            height: 95vh;
+            width: 95vw;
+            position: relative;
+        }
+        .cloud {
+            top: -300px;
+            left: 300px;
+            user-select: none;
+            height: 30px;
+            position: absolute;
+        }
+        h1 {
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            top: 0;
+            right: 0;
+            font-size: 50px;
+            font-family: 'Courier New', Courier, monospace;
+            color: rgb(238, 163, 219);
+        }
+    </style>
+</head>
+<body>
+    <h1 id="point">0</h1>
+    <img class="cloud" src="./cloud.png" alt="" srcset="">
+    <img class="cloud" src="./cloud.png" alt="" srcset="">
+    <img class="cloud" src="./cloud.png" alt="" srcset="">
+    <img class="cloud" src="./cloud.png" alt="" srcset="">
+    <img class="cloud" src="./cloud.png" alt="" srcset="">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script>
+        var clouds = $('.cloud');
+        var point = $('#point');
+        var point = 0;
+        var speed = 3000;
+
+        // start game when space keydown
+        $(document).on('keydown', function(e) {
+            if (e.keyCode == 32) {
+                startGame();
+            }
+        });
+
+        function startGame() {
+            var cloudFlying = setInterval(function() {
+                clouds.each( function() {
+                    var randomLeft = Math.floor(Math.random() * 100);
+                    var randomTop = Math.floor(Math.random() * 100);
+                    $(this).css({
+                        left: randomLeft + '%',
+                        top: randomTop + '%',
+                        transition: 'all ' + speed + 'ms linear',
+                    });
+                });
+            }, speed);
+    
+            
+            clouds.each( function() {
+                let cloud = $(this);
+                cloud.on('click', function() {
+                var cloudHeight = cloud.height();
+                cloud.css({
+                    height: cloudHeight + 10 + 'px',
+                });
+                point++;
+                $('#point').text(point);
+            });
+            });
+            
+    
+            var isCursorGrab = false;
+            setInterval(function() {
+                if (isCursorGrab) {
+                    $('body').css({
+                        cursor: 'grab',
+                    });
+                    isCursorGrab = false;
+                } else {
+                    $('body').css({
+                        cursor: 'grabbing',
+                    });
+                    isCursorGrab = true;
+                }
+            }, 500);
+        }
+        
+    </script>
+</body>
+</html>
