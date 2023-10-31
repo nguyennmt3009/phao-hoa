@@ -44,12 +44,7 @@
         var point = 0;
         var speed = 3000;
 
-        // start game when space keydown
-        $(document).on('keydown', function(e) {
-            if (e.keyCode == 32) {
-                startGame();
-            }
-        });
+        startGame();
 
         function startGame() {
             var cloudFlying = setInterval(function() {
@@ -63,18 +58,26 @@
                     });
                 });
             }, speed);
+
+            function cloudGrown(cloud) {
+                var cloudHeight = cloud.height();
+                    cloud.css({
+                        height: cloudHeight + 10 + 'px',
+                    });
+                point++;
+                $('#point').text(point);
+            }
+
     
             
             clouds.each( function() {
                 let cloud = $(this);
                 cloud.on('click', function() {
-                var cloudHeight = cloud.height();
-                cloud.css({
-                    height: cloudHeight + 10 + 'px',
+                    cloudGrown(cloud);
                 });
-                point++;
-                $('#point').text(point);
-            });
+                cloud.on('touchstart', function() {
+                    cloudGrown(cloud);
+                });
             });
             
     
