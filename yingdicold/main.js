@@ -9,10 +9,9 @@ cannotBtn.on('click', function () {
 
 ////// Ying's Dictionary Show //////
 var dictionarySample = [
-    {'char': 'lên', 'ying': 'https://picsum.photos/200/200?random=1'},
-    {'char': 'xuống', 'ying': 'https://picsum.photos/200/200?random=2'},
-    {'char': 'trái', 'ying': 'https://picsum.photos/200/200?random=3'},
-    {'char': 'phải', 'ying': 'https://picsum.photos/200/200?random=4'},
+    {'char': 'a', 'ying': '2'},
+    {'char': 'b', 'ying': '&'},
+    {'char': 'c', 'ying': ')'},
 ];
 
 // get dictionary from local storage
@@ -44,11 +43,39 @@ var humanTxt = $('#humanTxt');
 var yingTxt = $('#yingTxt');
 var addBtn = $('#addBtn');
 
+humanTxt.on('keyup', function () {
+    if (humanTxt.val().length > 1) {
+        addInvalid(humanTxt);
+        return;
+    } else {
+        removeInvalid(humanTxt);
+    }
+});
+
+yingTxt.on('keyup', function () {
+    if (yingTxt.val().length > 1) {
+        addInvalid(yingTxt);
+        return;
+    } else {
+        removeInvalid(yingTxt);
+    }
+});
+
+function addInvalid (element) {
+    element.addClass('is-invalid');
+    addBtn.attr('disabled', true);
+}
+
+function removeInvalid (element) {
+    element.removeClass('is-invalid');
+    addBtn.attr('disabled', false);
+}
+
 addBtn.on('click', function () {
     removeAlert();
-    var human = humanTxt.val().toLowerCase();
+    var human = humanTxt.val();
     var ying = yingTxt.val();
-    if (checkExistHuman(human)) {
+    if (checkExistHuman(human) || checkExistYing(ying)) {
         addAlert();
     } else {
         var newWord = {'char': human, 'ying': ying};
@@ -68,6 +95,15 @@ function saveToLocalStorage() {
 function checkExistHuman(char) {
     for (var i = 0; i < dictionary.length; i++) {
         if (dictionary[i].char == char) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function checkExistYing(ying) {
+    for (var i = 0; i < dictionary.length; i++) {
+        if (dictionary[i].ying == ying) {
             return true;
         }
     }
@@ -109,23 +145,12 @@ dicTable.on('click', '.btn-danger', function () {
 
 var searchTxt = $('#searchTxt');
 var resultTxt = $('#resultTxt');
-var resultImg = $('#resultImg');
 
 searchTxt.on('keyup', function () {
-    var input = searchTxt.val().toLowerCase().split(' ');
+    var input = searchTxt.val();
     var result = '';
-    resultImg.empty();
     for (var i = 0; i < input.length; i++) {
-        var imgSrc = searchChar(input[i]);
-        if (imgSrc) {
-            // create image
-            var img = document.createElement('img');
-            img.src = imgSrc;
-            img.width = 50;
-            img.height = 50;
-            // add to resultImg
-            resultImg.append(img);
-        }
+        result += searchChar(input[i]);
     }
     resultTxt.val(result);
 });
@@ -136,14 +161,39 @@ function searchChar(char) {
             return dictionary[i].ying;
         }
     }
-    return null;
+    return char;
+}
+
+resultTxt.on('keyup', function () {
+    var input = resultTxt.val();
+    var result = '';
+    for (var i = 0; i < input.length; i++) {
+        result += searchYing(input[i]);
+    }
+    searchTxt.val(result);
+
+});
+
+function searchYing(ying) {
+    for (var i = 0; i < dictionary.length; i++) {
+        if (dictionary[i].ying == ying) {
+            return dictionary[i].char;
+        }
+    }
+    return ying;
 }
 
 ////// Ying's Dictionary Copy To Clipboard //////
 
-// var resultTxtCopyBtn = $('#resultTxtCopy');
+var searchTxtCopyBtn = $('#searchTxtCopy');
+var resultTxtCopyBtn = $('#resultTxtCopy');
 
-// resultTxtCopyBtn.on('click', function () {
-//     let text = resultTxt.val();
-//     navigator.clipboard.writeText(text);
-// });
+searchTxtCopyBtn.on('click', function () {
+    let text = searchTxt.val();
+    navigator.clipboard.writeText(text);
+});
+
+resultTxtCopyBtn.on('click', function () {
+    let text = resultTxt.val();
+    navigator.clipboard.writeText(text);
+});
