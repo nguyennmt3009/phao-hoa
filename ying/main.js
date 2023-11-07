@@ -138,12 +138,3 @@ function searchChar(char) {
     }
     return null;
 }
-
-////// Ying's Dictionary Copy To Clipboard //////
-
-// var resultTxtCopyBtn = $('#resultTxtCopy');
-
-// resultTxtCopyBtn.on('click', function () {
-//     let text = resultTxt.val();
-//     navigator.clipboard.writeText(text);
-// });
