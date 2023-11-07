@@ -183,3 +183,17 @@ function searchYing(ying) {
     return ying;
 }
 
+////// Ying's Dictionary Copy To Clipboard //////
+
+var searchTxtCopyBtn = $('#searchTxtCopy');
+var resultTxtCopyBtn = $('#resultTxtCopy');
+
+searchTxtCopyBtn.on('click', function () {
+    let text = searchTxt.val();
+    navigator.clipboard.writeText(text);
+});
+
+resultTxtCopyBtn.on('click', function () {
+    let text = resultTxt.val();
+    navigator.clipboard.writeText(text);
+});
