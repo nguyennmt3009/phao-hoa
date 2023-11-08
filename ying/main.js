@@ -9,10 +9,10 @@ cannotBtn.on('click', function () {
 
 ////// Ying's Dictionary Show //////
 var dictionarySample = [
-    {'char': 'lên', 'ying': 'https://picsum.photos/200/200?random=1'},
-    {'char': 'xuống', 'ying': 'https://picsum.photos/200/200?random=2'},
-    {'char': 'trái', 'ying': 'https://picsum.photos/200/200?random=3'},
-    {'char': 'phải', 'ying': 'https://picsum.photos/200/200?random=4'},
+    {'char': 'lên', 'ying': './pic/len.png'},
+    {'char': 'xuống', 'ying': './pic/xuong.png'},
+    {'char': 'trái', 'ying': './pic/trai.jpg'},
+    {'char': 'phải', 'ying': './pic/phai.jpg'},
 ];
 
 // get dictionary from local storage
@@ -205,8 +205,8 @@ function searchSign(sign) {
 
 ////// Ying's Dictionary Gay Show //////
 var dictionaryGay = [
-    {'gay': 'hướng', 'words': ['trái', 'phải']},
-    {'gay': 'phương', 'words': ['lên', 'xuống']},
+    {'gay': 'ngang', 'words': ['trái', 'phải']},
+    {'gay': 'dọc', 'words': ['lên', 'xuống']},
 ];
 
 var dictionaryGayLocal = JSON.parse(localStorage.getItem('dictionaryGay'));
@@ -334,7 +334,7 @@ addGayBtn.on('click', function () {
 ////// Ying's Dictionary Sign Show //////
 
 var dictionarySign = [
-    {'sign': 'nghịch', 'img': './dau.png'},
+    {'sign': 'nghịch', 'img': './pic/nghich.png'},
 ];
 
 var dictionarySignLocal = JSON.parse(localStorage.getItem('dictionarySign'));
