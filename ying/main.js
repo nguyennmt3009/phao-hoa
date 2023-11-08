@@ -29,7 +29,7 @@ function renderTable() {
     for (var i = 0; i < dictionary.length; i++) {
         var row = '<tr>';
         row += '<td>' + dictionary[i].char + '</td>';
-        row += '<td>' + dictionary[i].ying + '</td>';
+        row += '<td><img src="' + dictionary[i].ying + '" width="50" height="50"></td>';
         row += '<td><button class="btn btn-danger btn-sm" data-index="' + i + '">Delete</button></td>';
         row += '</tr>';
         dicTable.append(row);
@@ -111,39 +111,68 @@ var searchTxt = $('#searchTxt');
 var resultTxt = $('#resultTxt');
 var resultImg = $('#resultImg');
 
-searchTxt.on('keyup', function () {
-    var input = searchTxt.val().toLowerCase().split(' ');
-    var result = '';
-    resultImg.empty();
-    for (var i = 0; i < input.length; i++) {
-        var imgSrc = searchChar(input[i]);
-        if (imgSrc) {
-            // create image
-            var img = document.createElement('img');
-            img.src = imgSrc;
-            img.width = 50;
-            img.height = 50;
-            // add to resultImg
-            resultImg.append(img);
-        } else {
-            var gayWords = searchGay(input[i]);
-            if (gayWords) {
-                for (var j = 0; j < gayWords.length; j++) {
-                    imgSrc = searchChar(gayWords[j]);
-                    if (imgSrc) {
-                        // create image
-                        var img = document.createElement('img');
-                        img.src = imgSrc;
-                        img.width = 50;
-                        img.height = 50;
-                        // add to resultImg
-                        resultImg.append(img);
-                    } 
+searchTxt.on('keyup', function (event) {
+    // if keyup is space or enter, start searching
+    if (event.keyCode == 32 || event.keyCode == 13) {
+        var input = searchTxt.val().toLowerCase().split(' ');
+        var result = '';
+        resultImg.empty();
+        for (var i = 0; i < input.length; i++) {
+            let text = input[i];
+            if (text.indexOf('-') > -1) {
+                let words = text.split('-');
+                let signPic = searchSign(words[0]);
+                let imgSrc = searchChar(words[1]);
+                if (signPic && imgSrc) {
+                    // create sign
+                    var sign = document.createElement('img');
+                    sign.src = signPic;
+                    sign.width = 50;
+                    sign.height = 50;
+                    // create image
+                    var img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.width = 50;
+                    img.height = 50;
+                    // create overlap div
+                    var overlap = document.createElement('div');
+                    overlap.className = 'overlap';
+                    overlap.append(img);
+                    overlap.append(sign);
+                    // add to resultImg
+                    resultImg.append(overlap);
+                }
+            } else {
+                var imgSrc = searchChar(text);
+                if (imgSrc) {
+                    // create image
+                    var img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.width = 50;
+                    img.height = 50;
+                    // add to resultImg
+                    resultImg.append(img);
+                } else {
+                    var gayWords = searchGay(text);
+                    if (gayWords) {
+                        for (var j = 0; j < gayWords.length; j++) {
+                            imgSrc = searchChar(gayWords[j]);
+                            if (imgSrc) {
+                                // create image
+                                var img = document.createElement('img');
+                                img.src = imgSrc;
+                                img.width = 50;
+                                img.height = 50;
+                                // add to resultImg
+                                resultImg.append(img);
+                            } 
+                        }
+                    }
                 }
             }
         }
+        resultTxt.val(result);
     }
-    resultTxt.val(result);
 });
 
 function searchChar(char) {
@@ -164,18 +193,26 @@ function searchGay(gay) {
     return null;
 }
 
+function searchSign(sign) {
+    for (var i = 0; i < dictionarySign.length; i++) {
+        if (dictionarySign[i].sign == sign) {
+            return dictionarySign[i].img;
+        }
+    }
+    return null;
+
+}
+
 ////// Ying's Dictionary Gay Show //////
 var dictionaryGay = [
     {'gay': 'hướng', 'words': ['trái', 'phải']},
     {'gay': 'phương', 'words': ['lên', 'xuống']},
 ];
 
-// local storage
 var dictionaryGayLocal = JSON.parse(localStorage.getItem('dictionaryGay'));
 if (dictionaryGayLocal != null) {
     dictionaryGay = dictionaryGayLocal;
 }
-
 
 var dicGayTable = $('#dicGayTable');
 
@@ -215,60 +252,63 @@ dicGayTable.on('click', '.btn-danger', function () {
 ////// Ying's Dictionary Gay Tag //////
 
 
-const tagInput = document.getElementById('tagInput');
-const tagsContainer = document.getElementById('tagsContainer');
-const tagSuggestions = document.getElementById('tagSuggestions');
+const tagInput = $('#tagInput');
+const tagsContainer = $('#tagsContainer');
+const tagSuggestions = $('#tagSuggestions');
 
-let tags = [];
-let suggestions = [];
+if (tagInput) {
+    let tags = [];
+    let suggestions = [];
 
-for (var i = 0; i < dictionary.length; i++) {
-    suggestions.push(dictionary[i].char);
-}
+    for (var i = 0; i < dictionary.length; i++) {
+        suggestions.push(dictionary[i].char);
+    }
 
-function displayTags() {
-    tagsContainer.innerHTML = '';
-    tags.forEach(tag => {
-        const tagElem = document.createElement('span');
-        tagElem.className = 'tag-item';
-        tagElem.textContent = tag;
-        const closeBtn = document.createElement('span');
-        closeBtn.className = 'close';
-        closeBtn.textContent = '×';
-        closeBtn.onclick = function () {
-            tags = tags.filter(t => t !== tag);
-            displayTags();
-        };
-        tagElem.appendChild(closeBtn);
-        tagsContainer.appendChild(tagElem);
-    });
-}
 
-tagInput.addEventListener('keyup', (e) => {
-    const inputText = e.target.value.trim();
-    tagSuggestions.innerHTML = '';
-    if (inputText) {
-        const filteredSuggestions = suggestions.filter(suggestion =>
-            suggestion.toLowerCase().includes(inputText.toLowerCase())
-        );
-        filteredSuggestions.forEach(suggestion => {
-            const div = document.createElement('div');
-            div.className = 'list-group-item list-group-item-action';
-            div.textContent = suggestion;
-            div.onclick = function () {
-                if (!tags.includes(suggestion)) {
-                    tags.push(suggestion);
-                    displayTags();
-                }
-                tagInput.value = '';
-                tagSuggestions.innerHTML = '';
+    function displayTags() {
+        tagsContainer.innerHTML = '';
+        tags.forEach(tag => {
+            const tagElem = document.createElement('span');
+            tagElem.className = 'tag-item';
+            tagElem.textContent = tag;
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'close';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = function () {
+                tags = tags.filter(t => t !== tag);
+                displayTags();
             };
-            tagSuggestions.appendChild(div);
+            tagElem.appendChild(closeBtn);
+            tagsContainer.appendChild(tagElem);
         });
     }
-});
 
-displayTags();
+    tagInput.on('keyup', function (e) {
+        const inputText = e.target.value.trim();
+        tagSuggestions.innerHTML = '';
+        if (inputText) {
+            const filteredSuggestions = suggestions.filter(suggestion =>
+                suggestion.toLowerCase().includes(inputText.toLowerCase())
+            );
+            filteredSuggestions.forEach(suggestion => {
+                const div = document.createElement('div');
+                div.className = 'list-group-item list-group-item-action';
+                div.textContent = suggestion;
+                div.onclick = function () {
+                    if (!tags.includes(suggestion)) {
+                        tags.push(suggestion);
+                        displayTags();
+                    }
+                    tagInput.value = '';
+                    tagSuggestions.innerHTML = '';
+                };
+                tagSuggestions.appendChild(div);
+            });
+        }
+    });
+    
+    displayTags();
+}
 
 ////// Ying's Dictionary Gay Add //////
 
@@ -297,3 +337,72 @@ addGayBtn.on('click', function () {
     }
 });
 
+////// Ying's Dictionary Sign Show //////
+
+var dictionarySign = [
+    {'sign': 'nghịch', 'img': './dau.png'},
+];
+
+var dictionarySignLocal = JSON.parse(localStorage.getItem('dictionarySign'));
+if (dictionarySignLocal != null) {
+    dictionarySign = dictionarySignLocal;
+}
+
+var dicSignTable = $('#dicSignTable');
+
+function renderSignTable() {
+    dicSignTable.empty();
+    for (var i = 0; i < dictionarySign.length; i++) {
+        var row = '<tr>';
+        row += '<td>' + dictionarySign[i].sign + '</td>';
+        row += '<td><img src="' + dictionarySign[i].img + '" width="50" height="50"></td>';
+        row += '<td><button class="btn btn-danger btn-sm" data-index="' + i + '">Delete</button></td>';
+        row += '</tr>';
+        dicSignTable.append(row);
+    }
+}
+
+renderSignTable();
+
+function saveToLocalStorageSign() {
+    localStorage.setItem('dictionarySign', JSON.stringify(dictionarySign));
+}
+
+////// Ying's Dictionary Sign Delete //////
+
+dicSignTable.on('click', '.btn-danger', function () {
+    var index = $(this).data('index');
+    dictionarySign.splice(index, 1);
+    dicSignTable.empty();
+    renderSignTable();
+    saveToLocalStorageSign();
+});
+
+////// Ying's Dictionary Sign Add //////
+var addSignBtn = $('#addSignBtn');
+
+addSignBtn.on('click', function () {
+    removeAlert();
+    var sign = $('#signTxt').val().toLowerCase();
+    var img = $('#signImg').val();
+    if (checkExistSign(sign)) {
+        addAlert();
+    } else {
+        var newWord = {'sign': sign, 'img': img};
+        dictionarySign.push(newWord);
+        dicSignTable.empty();
+        renderSignTable();
+        $('#signTxt').val('');
+        $('#signImg').val('');
+        saveToLocalStorageSign();
+    }
+});
+
+function checkExistSign(sign) {
+    for (var i = 0; i < dictionarySign.length; i++) {
+        if (dictionarySign[i].sign == sign) {
+            return true;
+        }
+    }
+    return false;
+}

@@ -23,7 +23,7 @@
               <li class="nav-item">
                 <a class="nav-link" href="./dic-gay-admin.html">Dic Đồng tính</a>
               </li>
-              <li class="nav-item">
+              <li class="nav-item active">
                 <a class="nav-link" href="./dic-sign-admin.html">Dic Sign</a>
               </li>
               <li id="cannot" class="nav-item">
@@ -35,18 +35,42 @@
       </header>
     <main role="main" class="flex-shrink-0">
         <div class="container">
-            <h1 class="mt-5"></h1>
-
-            <h4>Human Language</h4>
-            <div>
-                <input type="searchTxt" class="form-control" id="searchTxt" placeholder="Type something...">
+            <h4 class="mt-5">Add sign</h4>
+            <div class="row">
+                <div class="col">
+                  <input id="signTxt" type="text" class="form-control" placeholder="Sign" required>
+                </div>
+                <div class="col">
+                  <input id="signPicTxt" type="text" class="form-control" placeholder="Sign Pic" required>
+                </div>
             </div>
-            
-            <h4 class="mt-5">Iota Language</h4>
-            <div class="mb-3">
-                <div id="resultImg"></div>
+            <div class="row mt-2 mb-3">
+                <div class="col">
+                  <button id="addSignBtn" type="button" class="btn btn-dark float-right">Add</button>
+                </div>
             </div>
-        
+            <div class="row">
+                <div id="duplicateAlert" class="col">
+                </div>
+            </div>
+        </div>
+        <!-- Data section: show all dictionary by table -->
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <table class="table mt-5">
+                        <thead>
+                          <tr>
+                            <th scope="col">Sign</th>
+                            <th scope="col">Sign Pic</th>
+                            <th scope="col">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody id="dicSignTable">
+                        </tbody>
+                      </table>
+                </div>
+            </div>
         </div>
     </main>
     
