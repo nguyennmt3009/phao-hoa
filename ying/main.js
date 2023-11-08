@@ -251,7 +251,6 @@ dicGayTable.on('click', '.btn-danger', function () {
 
 ////// Ying's Dictionary Gay Tag //////
 
-
 const tagInput = $('#tagInput');
 const tagsContainer = $('#tagsContainer');
 const tagSuggestions = $('#tagSuggestions');
