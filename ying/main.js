@@ -400,3 +400,14 @@ function checkExistSign(sign) {
     }
     return false;
 }
+
+////// Ying's Dictionary Delete Local Storage //////
+
+var deleteBtn = $('#delLocalBtn');
+
+deleteBtn.on('click', function () {
+    localStorage.removeItem('dictionary');
+    localStorage.removeItem('dictionaryGay');
+    localStorage.removeItem('dictionarySign');
+    location.reload();
+});
