@@ -28,22 +28,21 @@
 </head>
 <body>
     <header>
-        <!-- Fixed navbar -->
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-        <a class="navbar-brand" href="./dic.html">Ying Dic</a>
+        <a class="navbar-brand" href="./dic.html">Iota Dictionary</a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav mr-auto">
               <li class="nav-item">
-                <a class="nav-link" href="./dic-admin.html">Dic Mana</a>
+                <a class="nav-link" href="./dic-admin.html">Word Manager</a>
               </li>
               <li class="nav-item active">
-                <a class="nav-link" href="./dic-gay-admin.html">Dic Đồng tính</a>
+                <a class="nav-link" href="./dic-gay-admin.html">Compound Manager</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="./dic-sign-admin.html">Dic Sign</a>
+                <a class="nav-link" href="./dic-sign-admin.html">Sign Manager</a>
               </li>
               <li id="cannot" class="nav-item">
                 <a  class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">You can not click here</a>
@@ -54,15 +53,15 @@
       </header>
     <main role="main" class="flex-shrink-0">
         <div class="container">
-            <h4 class="mt-5">Add word</h4>
+            <h4 class="mt-5">Add compound word</h4>
             <div class="row mb-3">
                 <div class="col">
-                  <input id="gayTxt" type="text" class="form-control" placeholder="Đồng tính Languge" required>
+                  <input id="gayTxt" type="text" class="form-control" placeholder="Compound word" required>
                 </div>
             </div>
             <div class="row">
                 <div class="col">
-                    <input id="tagInput" type="text" class="form-control" placeholder="Human Language" aria-describedby="tagHelp">
+                    <input id="tagInput" type="text" class="form-control" placeholder="Vietnamese words" aria-describedby="tagHelp">
                     <div id="tagSuggestions" class="list-group"></div>
                 </div>
             </div>
@@ -89,8 +88,8 @@
                     <table class="table mt-5">
                         <thead>
                           <tr>
-                            <th scope="col">Gay</th>
-                            <th scope="col">Human</th>
+                            <th scope="col">Compound word</th>
+                            <th scope="col">Vietnamese words</th>
                             <th scope="col">Action</th>
                           </tr>
                         </thead>
