@@ -255,59 +255,56 @@ const tagInput = $('#tagInput');
 const tagsContainer = $('#tagsContainer');
 const tagSuggestions = $('#tagSuggestions');
 
-if (tagInput) {
-    let tags = [];
-    let suggestions = [];
+let tags = [];
+let suggestions = [];
 
-    for (var i = 0; i < dictionary.length; i++) {
-        suggestions.push(dictionary[i].char);
-    }
+for (var i = 0; i < dictionary.length; i++) {
+    suggestions.push(dictionary[i].char);
+}
 
+function displayTags() {
+    tagsContainer.empty();
+    tags.forEach(tag => {
+        const tagElem = document.createElement('span');
+        tagElem.className = 'tag-item';
+        tagElem.textContent = tag;
+        const closeBtn = document.createElement('span');
+        closeBtn.className = 'close';
+        closeBtn.textContent = '×';
+        closeBtn.onclick = function () {
+            tags = tags.filter(t => t !== tag);
+            displayTags();
+        };
+        tagElem.append(closeBtn);
+        tagsContainer.append(tagElem);
+    });
+}
 
-    function displayTags() {
-        tagsContainer.innerHTML = '';
-        tags.forEach(tag => {
-            const tagElem = document.createElement('span');
-            tagElem.className = 'tag-item';
-            tagElem.textContent = tag;
-            const closeBtn = document.createElement('span');
-            closeBtn.className = 'close';
-            closeBtn.textContent = '×';
-            closeBtn.onclick = function () {
-                tags = tags.filter(t => t !== tag);
-                displayTags();
+tagInput.on('keyup', function (e) {
+    const inputText = e.target.value.trim();
+    tagSuggestions.empty();
+    if (inputText) {
+        const filteredSuggestions = suggestions.filter(suggestion =>
+            suggestion.toLowerCase().includes(inputText.toLowerCase())
+        );
+        filteredSuggestions.forEach(suggestion => {
+            const div = document.createElement('div');
+            div.className = 'list-group-item list-group-item-action';
+            div.textContent = suggestion;
+            div.onclick = function () {
+                if (!tags.includes(suggestion)) {
+                    tags.push(suggestion);
+                    displayTags();
+                }
+                tagInput.value = '';
+                tagSuggestions.empty();
             };
-            tagElem.appendChild(closeBtn);
-            tagsContainer.appendChild(tagElem);
+            tagSuggestions.append(div);
         });
     }
+});
 
-    tagInput.on('keyup', function (e) {
-        const inputText = e.target.value.trim();
-        tagSuggestions.innerHTML = '';
-        if (inputText) {
-            const filteredSuggestions = suggestions.filter(suggestion =>
-                suggestion.toLowerCase().includes(inputText.toLowerCase())
-            );
-            filteredSuggestions.forEach(suggestion => {
-                const div = document.createElement('div');
-                div.className = 'list-group-item list-group-item-action';
-                div.textContent = suggestion;
-                div.onclick = function () {
-                    if (!tags.includes(suggestion)) {
-                        tags.push(suggestion);
-                        displayTags();
-                    }
-                    tagInput.value = '';
-                    tagSuggestions.innerHTML = '';
-                };
-                tagSuggestions.appendChild(div);
-            });
-        }
-    });
-    
-    displayTags();
-}
+displayTags();
 
 ////// Ying's Dictionary Gay Add //////
 
@@ -316,7 +313,6 @@ var addGayBtn = $('#addGayBtn');
 addGayBtn.on('click', function () {
     removeAlert();
     var gayWord = $('#gayTxt').val().toLowerCase();
-    console.log(gayWord);
 
     var isExisting = dictionaryGay.some(function (entry) {
         return entry.gay === gayWord;
@@ -325,7 +321,6 @@ addGayBtn.on('click', function () {
     if (!isExisting && gayWord !== '' && tags.length > 0) {
         var newEntry = { 'gay': gayWord, 'words': tags };
         dictionaryGay.push(newEntry);
-        console.log(dictionaryGay);
         $('#gayTxt').val('');
         tags = [];
         displayTags();
