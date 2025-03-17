@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhắc Nhở Làm Việc</title>
+    <style>
+        body {
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            overflow: hidden;
+        }
+        .message {
+            font-size: 7rem;
+            font-weight: bold;
+            animation: bounce 0.4s infinite alternate ease-in-out;
+            position: absolute;
+        }
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+    <div class="message" id="reminder">LÀM VIỆC ĐIIIIII!</div>
+
+    <script>
+        const messages = [
+            "LÀM VIỆC ĐIIIIII!",
+            "TẬP TRUNG NÀO!",
+            "CỐ GẮNG LÊN!",
+            "KHÔNG LƯỜI BIẾNG!",
+            "HOÀN THÀNH CÔNG VIỆC ĐI!"
+        ];
+
+        function changeMessage() {
+            const messageElement = document.getElementById("reminder");
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            messageElement.textContent = randomMessage;
+        }
+
+        function getRandomColor() {
+            return `rgb(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)})`;
+        }
+
+        function changeColor() {
+            const messageElement = document.getElementById("reminder");
+            messageElement.style.color = getRandomColor();
+        }
+
+        setInterval(changeMessage, 120000); // Đổi thông báo mỗi 2 phút
+        setInterval(changeColor, 1000); // Đổi màu mỗi giây
+    </script>
+</body>
+</html>
