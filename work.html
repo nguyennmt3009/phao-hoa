@@ -19,12 +19,22 @@
         .message {
             font-size: 7rem;
             font-weight: bold;
-            animation: bounce 0.4s infinite alternate ease-in-out;
             position: absolute;
         }
         @keyframes bounce {
             from { transform: scale(1); }
             to { transform: scale(1.5); }
+        }
+
+        @keyframes scroll-from-left-to-right {
+            from { transform: translateX(200%) scale(2); }
+            to { transform: translateX(-200%) scale(2);; }
+        }
+
+        @keyframes text-rotate3d {
+            0% { transform: rotate3d(1, 1, 1, 0deg); }
+            50% { transform: rotate3d(1, 1, 1, 180deg); }
+            100% { transform: rotate3d(1, 1, 1, 360deg); }
         }
     </style>
 </head>
@@ -34,10 +44,13 @@
     <script>
         const messages = [
             "LÀM VIỆC ĐIIIIII!",
-            "TẬP TRUNG NÀO!",
-            "CỐ GẮNG LÊN!",
-            "KHÔNG LƯỜI BIẾNG!",
-            "HOÀN THÀNH CÔNG VIỆC ĐI!"
+            "CHÁYYY RỒIII",
+            "TẬP TRUNG COI!",
+            "CỐ GẮNG CỐ GẮNG!",
+            "Ê Ê LÀM XONG CHƯA?",
+            "WOK WOK WOK",
+            "DEADLINEEEEE",
+            "SẮP XONG CHƯA???"
         ];
 
         function changeMessage() {
@@ -55,8 +68,23 @@
             messageElement.style.color = getRandomColor();
         }
 
-        setInterval(changeMessage, 120000); // Đổi thông báo mỗi 2 phút
-        setInterval(changeColor, 500); // Đổi màu mỗi giây
+        const animation_list = [
+          "bounce 0.4s infinite alternate ease-in-out",
+          "scroll-from-left-to-right 5s linear infinite",
+          "text-rotate3d 1.5s infinite linear"
+        ]
+
+        function changeAnimation() {
+            const messageElement = document.getElementById("reminder");
+            messageElement.style.animation = animation_list[Math.floor(Math.random() * animation_list.length)];
+        }
+
+        // Đổi thông báo mỗi 10s 
+        setInterval(changeMessage, 10000);
+        // Đổi màu mỗi giây
+        setInterval(changeColor, 500);
+        // Đổi animation mỗi 10s
+        setInterval(changeAnimation, 10000);
 
         // Enter thì đổi thông báo
         document.addEventListener("keydown", function(event) {
@@ -64,6 +92,16 @@
                 changeMessage();
             }
         });
+
+        // Space thì đổi animation
+        document.addEventListener("keydown", function(event) {
+            if (event.key === " ") {
+                changeAnimation();
+            }
+        });
+
+        changeMessage();
+        changeAnimation();
     </script>
 </body>
 </html>
