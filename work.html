@@ -47,10 +47,14 @@
             "CHÁYYY RỒIII",
             "TẬP TRUNG COI!",
             "CỐ GẮNG CỐ GẮNG!",
-            "Ê Ê LÀM XONG CHƯA?",
             "WOK WOK WOK",
             "DEADLINEEEEE",
-            "SẮP XONG CHƯA???"
+            "SẮP XONG CHƯA???",
+            "CỐ LÊN CỐ LÊN",
+            "CHỈ CÒN MỘT CHÚT NỮA THÔI",
+            "LÀMMMM VIỆCCC",
+            "DEAD LINE DEAD LINE",
+            "🫵🫵🫵"
         ];
 
         function changeMessage() {
@@ -79,12 +83,12 @@
             messageElement.style.animation = animation_list[Math.floor(Math.random() * animation_list.length)];
         }
 
-        // Đổi thông báo mỗi 10s 
-        setInterval(changeMessage, 10000);
+        // Đổi thông báo mỗi 5s 
+        setInterval(changeMessage, 5000);
         // Đổi màu mỗi giây
         setInterval(changeColor, 500);
-        // Đổi animation mỗi 10s
-        setInterval(changeAnimation, 10000);
+        // Đổi animation mỗi 5s
+        setInterval(changeAnimation, 5000);
 
         // Enter thì đổi thông báo
         document.addEventListener("keydown", function(event) {
