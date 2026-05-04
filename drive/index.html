@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Ôn thi lái xe 🚗</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563eb;
+      --primary-light: #eff6ff;
+      --correct: #16a34a;
+      --correct-light: #f0fdf4;
+      --wrong: #dc2626;
+      --wrong-light: #fef2f2;
+      --neutral: #6b7280;
+      --bg: #f9fafb;
+      --card-bg: #ffffff;
+      --border: #e5e7eb;
+      --text: #111827;
+      --text-secondary: #6b7280;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    #app { width: 100%; max-width: 640px; min-height: 100vh; }
+
+    /* ── SETUP ── */
+    #setup-screen { padding: 40px 16px 24px; }
+
+    .app-title { font-size: 28px; font-weight: 700; text-align: center; margin-bottom: 6px; }
+    .app-subtitle { color: var(--text-secondary); text-align: center; margin-bottom: 32px; font-size: 14px; }
+
+    .section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 12px;
+    }
+
+    .honmen-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+    .honmen-btn {
+      padding: 10px 4px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+    .honmen-btn.selected { background: var(--primary); border-color: var(--primary); color: white; }
+    .honmen-btn-all { grid-column: 1 / -1; padding: 10px; }
+
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle-label { font-size: 15px; }
+    .toggle { position: relative; width: 48px; height: 28px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--border); border-radius: 28px; transition: 0.2s;
+    }
+    .toggle-slider:before {
+      content: ''; position: absolute; height: 22px; width: 22px;
+      left: 3px; bottom: 3px; background: white; border-radius: 50%;
+      transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked + .toggle-slider { background: var(--primary); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+    .start-btn {
+      display: block; width: 100%; padding: 16px;
+      background: var(--primary); color: white;
+      border: none; border-radius: 12px; font-size: 17px; font-weight: 600;
+      cursor: pointer; margin-top: 8px;
+    }
+    .start-btn:active { opacity: 0.85; }
+    .start-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── QUIZ ── */
+    #quiz-screen { display: flex; flex-direction: column; min-height: 100vh; }
+
+    .quiz-header {
+      display: flex; align-items: center; padding: 12px 16px;
+      background: white; border-bottom: 1px solid var(--border);
+      gap: 12px; position: sticky; top: 0; z-index: 10;
+    }
+
+    .back-btn {
+      background: none; border: none; font-size: 20px;
+      cursor: pointer; padding: 4px 8px; color: var(--text); border-radius: 6px;
+    }
+
+    .progress-text { flex: 1; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
+
+    .score-display { display: flex; gap: 12px; font-size: 14px; font-weight: 600; }
+    .score-correct { color: var(--correct); }
+    .score-wrong { color: var(--wrong); }
+
+    .progress-bar { height: 3px; background: var(--border); }
+    .progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+
+    .quiz-body { flex: 1; padding: 16px; overflow-y: auto; }
+
+    .question-card {
+      background: var(--card-bg); border-radius: 12px;
+      padding: 20px; margin-bottom: 16px; border: 1px solid var(--border);
+    }
+
+    .question-type-badge {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      color: var(--primary); background: var(--primary-light);
+      border-radius: 4px; padding: 2px 6px; text-transform: uppercase;
+    }
+
+    .question-vi { font-size: 16px; line-height: 1.65; margin-bottom: 8px; }
+    .question-ja { font-size: 13px; color: var(--text-secondary); line-height: 2.2; }
+    ruby { display: inline-flex; flex-direction: column-reverse; align-items: center; vertical-align: bottom; }
+    ruby rt { font-size: 0.55em; color: var(--text-secondary); line-height: 1; margin-bottom: -0.4em; text-align: center; white-space: nowrap; }
+
+    .question-image {
+      width: 100%; border-radius: 8px; margin-top: 12px;
+      max-height: 220px; object-fit: contain; background: #f3f4f6;
+    }
+
+    /* S-type answer buttons */
+    .answer-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 16px; }
+
+    .answer-btn {
+      padding: 24px 8px; border: 2px solid var(--border);
+      border-radius: 12px; font-size: 36px; cursor: pointer;
+      background: white; transition: all 0.15s; font-weight: 700;
+    }
+    .answer-btn:hover:not(:disabled) { border-color: var(--primary); background: var(--primary-light); }
+    .answer-btn:active:not(:disabled) { transform: scale(0.97); }
+    .answer-btn.correct-ans { background: var(--correct-light); border-color: var(--correct); color: var(--correct); }
+    .answer-btn.wrong-ans { background: var(--wrong-light); border-color: var(--wrong); color: var(--wrong); }
+    .answer-btn:disabled { cursor: default; }
+
+    /* M-type sub-questions */
+    .sub-question {
+      background: white; border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px; margin-bottom: 10px;
+    }
+
+    .sub-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+    .sub-text { flex: 1; }
+    .sub-num-label { font-size: 11px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+    .sub-vi { font-size: 15px; line-height: 1.55; margin-bottom: 4px; }
+    .sub-ja { font-size: 12px; color: var(--text-secondary); line-height: 2.2; }
+
+    .sub-buttons { display: flex; gap: 6px; flex-shrink: 0; padding-top: 2px; }
+
+    .sub-btn {
+      width: 44px; height: 44px; border: 2px solid var(--border);
+      border-radius: 8px; font-size: 20px; cursor: pointer; background: white;
+      transition: all 0.15s; display: flex; align-items: center; justify-content: center;
+    }
+    .sub-btn:hover:not(:disabled) { border-color: var(--primary); }
+    .sub-btn.sel-true { background: #dcfce7; border-color: var(--correct); }
+    .sub-btn.sel-false { background: #fee2e2; border-color: var(--wrong); }
+    .sub-btn.res-correct { background: var(--correct-light); border-color: var(--correct); }
+    .sub-btn.res-wrong { background: var(--wrong-light); border-color: var(--wrong); }
+    .sub-btn:disabled { cursor: default; }
+
+    .check-btn {
+      display: block; width: 100%; padding: 14px;
+      background: var(--primary); color: white;
+      border: none; border-radius: 10px; font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-bottom: 16px; transition: opacity 0.15s;
+    }
+    .check-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Explanation */
+    .explanation-card {
+      border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid;
+    }
+    .explanation-card.res-correct { background: var(--correct-light); border-color: var(--correct); }
+    .explanation-card.res-wrong { background: var(--wrong-light); border-color: var(--wrong); }
+
+    .result-verdict { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .correct-answer-line { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+
+    .exp-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 6px;
+    }
+    .exp-vi { font-size: 14px; line-height: 1.65; margin-bottom: 6px; }
+    .exp-ja { font-size: 12px; color: var(--text-secondary); line-height: 2.2; }
+
+    .next-btn {
+      display: block; width: 100%; padding: 14px;
+      background: var(--text); color: white;
+      border: none; border-radius: 10px; font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-bottom: 24px;
+    }
+    .next-btn:active { opacity: 0.85; }
+
+    /* ── RESULTS ── */
+    #results-screen { padding: 48px 16px 32px; text-align: center; }
+
+    .results-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+
+    .result-pct {
+      font-size: 80px; font-weight: 800; line-height: 1; margin: 20px 0 6px;
+    }
+    .result-pct.passing { color: var(--correct); }
+    .result-pct.failing { color: var(--wrong); }
+
+    .result-sub { font-size: 15px; color: var(--text-secondary); margin-bottom: 8px; }
+    .result-verdict-big { font-size: 22px; font-weight: 700; margin-bottom: 28px; }
+
+    .result-stats {
+      background: white; border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px; margin-bottom: 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num { font-size: 36px; font-weight: 700; }
+    .stat-num.c { color: var(--correct); }
+    .stat-num.w { color: var(--wrong); }
+    .stat-label { font-size: 13px; color: var(--text-secondary); }
+
+    .res-btn {
+      display: block; width: 100%; padding: 15px;
+      border: none; border-radius: 12px; font-size: 16px; font-weight: 600;
+      cursor: pointer; margin-bottom: 12px;
+    }
+    .res-btn.primary { background: var(--primary); color: white; }
+    .res-btn.secondary { background: var(--neutral); color: white; }
+    .res-btn.outline { background: white; color: var(--text); border: 2px solid var(--border); }
+    .res-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── SETUP ── -->
+  <div id="setup-screen">
+    <div class="app-title">🚗 Ôn thi lái xe</div>
+    <div class="app-subtitle">Luyện thi bằng lái xe Nhật Bản</div>
+
+    <div class="section">
+      <div class="section-title">Chọn đề thi</div>
+      <div class="honmen-grid" id="honmen-grid">
+        <button class="honmen-btn honmen-btn-all selected" id="btn-all">Tất cả (760 câu)</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Cài đặt</div>
+      <div class="toggle-row">
+        <span class="toggle-label">Xáo trộn câu hỏi</span>
+        <label class="toggle">
+          <input type="checkbox" id="shuffle-toggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div id="selected-count" style="text-align:center;color:var(--text-secondary);font-size:14px;margin-bottom:16px;margin-top:-8px;">
+      760 câu được chọn
+    </div>
+
+    <button class="start-btn" id="start-btn">Bắt đầu ôn tập</button>
+  </div>
+
+  <!-- ── QUIZ ── -->
+  <div id="quiz-screen" class="hidden">
+    <div class="quiz-header">
+      <button class="back-btn" id="back-btn">←</button>
+      <span class="progress-text" id="progress-text">1 / 760</span>
+      <div class="score-display">
+        <span class="score-correct" id="score-correct">✓ 0</span>
+        <span class="score-wrong" id="score-wrong">✗ 0</span>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="quiz-body" id="quiz-body"></div>
+  </div>
+
+  <!-- ── RESULTS ── -->
+  <div id="results-screen" class="hidden">
+    <div class="results-title">Kết quả</div>
+    <div class="result-pct" id="result-pct">—</div>
+    <div class="result-sub" id="result-sub">0/0 câu đúng</div>
+    <div class="result-verdict-big" id="result-verdict"></div>
+
+    <div class="result-stats">
+      <div class="stat-item">
+        <div class="stat-num c" id="result-correct">0</div>
+        <div class="stat-label">Đúng</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num w" id="result-wrong">0</div>
+        <div class="stat-label">Sai</div>
+      </div>
+    </div>
+
+    <button class="res-btn primary" id="retry-wrong-btn">Ôn lại câu sai</button>
+    <button class="res-btn secondary" id="retry-all-btn">Làm lại từ đầu</button>
+    <button class="res-btn outline" id="home-btn">Về trang chủ</button>
+  </div>
+
+</div>
+<script>
+  const KEYS = ['honmen1','honmen2','honmen3','honmen4','honmen5','honmen6','honmen7','honmen8'];
+  let data = {};
+  let questions = [];
+  let currentIndex = 0;
+  let score = { correct: 0, wrong: 0 };
+  let wrongQuestions = [];
+  let subAnswers = {};
+  let answered = false;
+  let selectedKeys = new Set(KEYS);
+
+  // ── INIT ──
+  async function init() {
+    try {
+      const res = await fetch('./questions.json');
+      data = await res.json();
+      buildHonmenButtons();
+    } catch {
+      document.getElementById('setup-screen').innerHTML = `
+        <div style="padding:60px 24px;text-align:center;">
+          <div style="font-size:48px;margin-bottom:20px;">⚠️</div>
+          <h2 style="margin-bottom:12px;">Không tải được dữ liệu</h2>
+          <p style="color:#6b7280;line-height:1.8;">Hãy chạy lệnh sau rồi mở lại trang:<br>
+          <code style="display:inline-block;margin-top:8px;background:#f3f4f6;padding:6px 12px;border-radius:6px;font-family:monospace;font-size:13px;">
+            python3 -m http.server 8080
+          </code></p>
+        </div>`;
+    }
+  }
+
+  function buildHonmenButtons() {
+    const grid = document.getElementById('honmen-grid');
+    KEYS.forEach((key, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'honmen-btn selected';
+      btn.dataset.key = key;
+      btn.textContent = `Đề ${i + 1}`;
+      btn.addEventListener('click', () => {
+        if (selectedKeys.has(key)) { selectedKeys.delete(key); btn.classList.remove('selected'); }
+        else { selectedKeys.add(key); btn.classList.add('selected'); }
+        syncAllBtn();
+        updateCount();
+      });
+      grid.appendChild(btn);
+    });
+    document.getElementById('btn-all').addEventListener('click', () => {
+      const allSelected = selectedKeys.size === KEYS.length;
+      KEYS.forEach(k => allSelected ? selectedKeys.delete(k) : selectedKeys.add(k));
+      document.querySelectorAll('[data-key]').forEach(b => b.classList.toggle('selected', !allSelected));
+      document.getElementById('btn-all').classList.toggle('selected', !allSelected);
+      updateCount();
+    });
+    updateCount();
+  }
+
+  function syncAllBtn() {
+    document.getElementById('btn-all').classList.toggle('selected', selectedKeys.size === KEYS.length);
+  }
+
+  function updateCount() {
+    let n = 0;
+    selectedKeys.forEach(k => n += (data[k] || []).length);
+    document.getElementById('selected-count').textContent = n > 0 ? `${n} câu được chọn` : 'Chưa chọn đề nào';
+    document.getElementById('start-btn').disabled = n === 0;
+  }
+
+  // ── SCREENS ──
+  function showScreen(name) {
+    ['setup','quiz','results'].forEach(s =>
+      document.getElementById(`${s}-screen`).classList.toggle('hidden', s !== name));
+  }
+
+  // ── QUIZ START ──
+  document.getElementById('start-btn').addEventListener('click', () => startQuiz(false));
+  document.getElementById('back-btn').addEventListener('click', () => showScreen('setup'));
+  document.getElementById('retry-wrong-btn').addEventListener('click', () => startQuiz(true));
+  document.getElementById('retry-all-btn').addEventListener('click', () => startQuiz(false));
+  document.getElementById('home-btn').addEventListener('click', () => showScreen('setup'));
+
+  function startQuiz(useWrong) {
+    let qs = useWrong ? [...wrongQuestions] : [];
+    if (!useWrong) selectedKeys.forEach(k => qs.push(...(data[k] || [])));
+    if (document.getElementById('shuffle-toggle').checked) qs.sort(() => Math.random() - 0.5);
+    questions = qs;
+    currentIndex = 0;
+    score = { correct: 0, wrong: 0 };
+    wrongQuestions = [];
+    showScreen('quiz');
+    renderQuestion();
+  }
+
+  // ── HEADER ──
+  function updateHeader() {
+    document.getElementById('progress-text').textContent = `${currentIndex + 1} / ${questions.length}`;
+    document.getElementById('progress-fill').style.width = `${(currentIndex / questions.length) * 100}%`;
+    document.getElementById('score-correct').textContent = `✓ ${score.correct}`;
+    document.getElementById('score-wrong').textContent = `✗ ${score.wrong}`;
+  }
+
+  // ── RENDER QUESTION ──
+  function renderQuestion() {
+    if (currentIndex >= questions.length) { showResults(); return; }
+    const q = questions[currentIndex];
+    subAnswers = {};
+    answered = false;
+    updateHeader();
+
+    const body = document.getElementById('quiz-body');
+    body.innerHTML = '';
+    body.scrollTop = 0;
+
+    // Card header
+    const card = document.createElement('div');
+    card.className = 'question-card';
+
+    const meta = document.createElement('div');
+    meta.style.cssText = 'display:flex;align-items:center;gap:8px;margin-bottom:12px;';
+
+    const badge = document.createElement('span');
+    badge.className = 'question-type-badge';
+    badge.textContent = q.type === 'M' ? 'Nhiều lựa chọn' : 'Đúng / Sai';
+    meta.appendChild(badge);
+
+    const fileNum = KEYS.findIndex(k => (data[k] || []).includes(q)) + 1;
+    const numEl = document.createElement('span');
+    numEl.style.cssText = 'font-size:12px;color:var(--text-secondary);';
+    numEl.textContent = `Đề ${fileNum} · Câu ${q.number}`;
+    meta.appendChild(numEl);
+    card.appendChild(meta);
+
+    if (q.type === 'M') renderM(card, body, q);
+    else renderS(card, body, q);
+  }
+
+  function furiganaToRuby(text) {
+    if (!text) return '';
+    const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return safe.replace(/([^\s()（）]+?)\(([^)（）]+)\)/g, (match, base, reading) => {
+      if (/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff々〆〇]/.test(base)) {
+        return `<ruby>${base}<rt>${reading}</rt></ruby>`;
+      }
+      return match;
+    });
+  }
+
+  function addTextPair(parent, vi, ja, viClass, jaClass) {
+    const viEl = document.createElement('div');
+    viEl.className = viClass;
+    viEl.textContent = vi;
+    parent.appendChild(viEl);
+    if (vi && ja && vi !== ja) {
+      const jaEl = document.createElement('div');
+      jaEl.className = jaClass;
+      jaEl.innerHTML = furiganaToRuby(ja);
+      parent.appendChild(jaEl);
+    }
+  }
+
+  function addImage(parent, src) {
+    if (!src) return;
+    const img = document.createElement('img');
+    img.className = 'question-image';
+    img.src = src;
+    img.alt = 'Hình minh họa';
+    parent.appendChild(img);
+  }
+
+  // ── S-TYPE ──
+  function renderS(card, body, q) {
+    addTextPair(card, q.question_vi || q.question, q.question_furigana || q.question, 'question-vi', 'question-ja');
+    addImage(card, q.image);
+    body.appendChild(card);
+
+    const row = document.createElement('div');
+    row.className = 'answer-buttons';
+
+    const tBtn = makeAnswerBtn('○', true);
+    const fBtn = makeAnswerBtn('×', false);
+    row.appendChild(tBtn);
+    row.appendChild(fBtn);
+    body.appendChild(row);
+
+    [tBtn, fBtn].forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        tBtn.disabled = true;
+        fBtn.disabled = true;
+        const userTrue = btn === tBtn;
+        const correct = userTrue === q.correct;
+
+        (q.correct ? tBtn : fBtn).classList.add('correct-ans');
+        if (!correct) btn.classList.add('wrong-ans');
+
+        if (correct) score.correct++; else { score.wrong++; wrongQuestions.push(q); }
+        updateHeader();
+
+        const expCard = makeExpCard(
+          correct,
+          `Đáp án đúng: ${q.correct ? '○' : '×'}`,
+          q.explanation_vi || q.explanation,
+          q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
+        );
+        body.appendChild(expCard);
+        addNextBtn(body);
+      });
+    });
+  }
+
+  function makeAnswerBtn(text, val) {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = text;
+    btn.dataset.val = val;
+    return btn;
+  }
+
+  // ── M-TYPE ──
+  function renderM(card, body, q) {
+    const scenLabel = document.createElement('div');
+    scenLabel.style.cssText = 'font-size:11px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;';
+    scenLabel.textContent = 'Tình huống';
+    card.appendChild(scenLabel);
+
+    addTextPair(card, q.scenario_vi || q.scenario, q.scenario_furigana || q.scenario, 'question-vi', 'question-ja');
+    addImage(card, q.image);
+    body.appendChild(card);
+
+    const subBtns = {};
+    const subContainer = document.createElement('div');
+
+    q.sub_questions.forEach(sub => {
+      const el = document.createElement('div');
+      el.className = 'sub-question';
+
+      const header = document.createElement('div');
+      header.className = 'sub-header';
+
+      const textEl = document.createElement('div');
+      textEl.className = 'sub-text';
+
+      const numLabel = document.createElement('div');
+      numLabel.className = 'sub-num-label';
+      numLabel.textContent = `${sub.sub_number}.`;
+      textEl.appendChild(numLabel);
+
+      addTextPair(textEl, sub.question_vi || sub.question, sub.question_furigana || sub.question, 'sub-vi', 'sub-ja');
+      header.appendChild(textEl);
+
+      const btns = document.createElement('div');
+      btns.className = 'sub-buttons';
+
+      const tBtn = document.createElement('button');
+      tBtn.className = 'sub-btn';
+      tBtn.textContent = '○';
+
+      const fBtn = document.createElement('button');
+      fBtn.className = 'sub-btn';
+      fBtn.textContent = '×';
+
+      subBtns[sub.sub_number] = { tBtn, fBtn };
+
+      [tBtn, fBtn].forEach(b => {
+        b.addEventListener('click', () => {
+          if (answered) return;
+          const isTrue = b === tBtn;
+          subAnswers[sub.sub_number] = isTrue;
+          tBtn.classList.toggle('sel-true', isTrue);
+          tBtn.classList.toggle('sel-false', false);
+          fBtn.classList.toggle('sel-false', !isTrue);
+          fBtn.classList.toggle('sel-true', false);
+          checkBtn.disabled = !q.sub_questions.every(sq => subAnswers[sq.sub_number] !== undefined);
+        });
+      });
+
+      btns.appendChild(tBtn);
+      btns.appendChild(fBtn);
+      header.appendChild(btns);
+      el.appendChild(header);
+      subContainer.appendChild(el);
+    });
+
+    body.appendChild(subContainer);
+
+    const checkBtn = document.createElement('button');
+    checkBtn.className = 'check-btn';
+    checkBtn.textContent = 'Kiểm tra đáp án';
+    checkBtn.disabled = true;
+    body.appendChild(checkBtn);
+
+    checkBtn.addEventListener('click', () => {
+      if (answered) return;
+      answered = true;
+      checkBtn.disabled = true;
+
+      let allCorrect = true;
+      q.sub_questions.forEach(sub => {
+        const userAns = subAnswers[sub.sub_number];
+        const correct = userAns === sub.correct;
+        if (!correct) allCorrect = false;
+
+        const { tBtn, fBtn } = subBtns[sub.sub_number];
+        tBtn.disabled = true;
+        fBtn.disabled = true;
+        tBtn.classList.remove('sel-true', 'sel-false');
+        fBtn.classList.remove('sel-true', 'sel-false');
+
+        (sub.correct ? tBtn : fBtn).classList.add('res-correct');
+        if (!correct) (userAns ? tBtn : fBtn).classList.add('res-wrong');
+      });
+
+      if (allCorrect) score.correct++; else { score.wrong++; wrongQuestions.push(q); }
+      updateHeader();
+
+      const expCard = makeExpCard(
+        allCorrect,
+        null,
+        q.explanation_vi || q.explanation,
+        q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
+      );
+      body.appendChild(expCard);
+      addNextBtn(body);
+    });
+  }
+
+  // ── EXPLANATION CARD ──
+  function makeExpCard(correct, answerLine, expVi, expJa) {
+    const card = document.createElement('div');
+    card.className = `explanation-card ${correct ? 'res-correct' : 'res-wrong'}`;
+
+    const verdict = document.createElement('div');
+    verdict.className = 'result-verdict';
+    verdict.style.color = correct ? 'var(--correct)' : 'var(--wrong)';
+    verdict.textContent = correct ? '○ Đúng!' : '× Sai!';
+    card.appendChild(verdict);
+
+    if (answerLine) {
+      const al = document.createElement('div');
+      al.className = 'correct-answer-line';
+      al.style.color = correct ? 'var(--correct)' : 'var(--wrong)';
+      al.textContent = answerLine;
+      card.appendChild(al);
+    }
+
+    if (expVi) {
+      const label = document.createElement('div');
+      label.className = 'exp-label';
+      label.textContent = 'Giải thích';
+      card.appendChild(label);
+
+      const viEl = document.createElement('div');
+      viEl.className = 'exp-vi';
+      viEl.textContent = expVi;
+      card.appendChild(viEl);
+
+      if (expJa) {
+        const jaEl = document.createElement('div');
+        jaEl.className = 'exp-ja';
+        jaEl.innerHTML = furiganaToRuby(expJa);
+        card.appendChild(jaEl);
+      }
+    }
+
+    return card;
+  }
+
+  // ── NEXT BUTTON ──
+  function addNextBtn(body) {
+    const btn = document.createElement('button');
+    btn.className = 'next-btn';
+    btn.textContent = currentIndex + 1 >= questions.length ? 'Xem kết quả →' : 'Câu tiếp theo →';
+    btn.addEventListener('click', () => { currentIndex++; renderQuestion(); });
+    body.appendChild(btn);
+    setTimeout(() => btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+  }
+
+  // ── RESULTS ──
+  function showResults() {
+    showScreen('results');
+    const total = questions.length;
+    const pct = Math.round((score.correct / total) * 100);
+    const pass = pct >= 90;
+
+    document.getElementById('result-pct').textContent = `${pct}%`;
+    document.getElementById('result-pct').className = `result-pct ${pass ? 'passing' : 'failing'}`;
+    document.getElementById('result-sub').textContent = `${score.correct}/${total} câu đúng`;
+    document.getElementById('result-verdict').textContent = pass ? 'Đậu rồi! 🎉' : 'Chưa đạt. Cố lên! 💪';
+    document.getElementById('result-correct').textContent = score.correct;
+    document.getElementById('result-wrong').textContent = score.wrong;
+
+    const retryWrong = document.getElementById('retry-wrong-btn');
+    retryWrong.textContent = `Ôn lại ${wrongQuestions.length} câu sai`;
+    retryWrong.disabled = wrongQuestions.length === 0;
+  }
+
+  init();
+</script>
+</body>
+</html>
