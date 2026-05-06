@@ -111,7 +111,6 @@
       background: none; border: none; font-size: 20px;
       cursor: pointer; padding: 4px 8px; color: var(--text); border-radius: 6px;
     }
-
     .progress-text { flex: 1; font-size: 14px; color: var(--text-secondary); font-weight: 500; }
 
     .score-display { display: flex; gap: 12px; font-size: 14px; font-weight: 600; }
@@ -335,6 +334,7 @@
   let currentIndex = 0;
   let score = { correct: 0, wrong: 0 };
   let wrongQuestions = [];
+  let answers = []; // answers[i] = {correct, userAnswer?, subAnswers?}
   let subAnswers = {};
   let answered = false;
   let selectedKeys = new Set(KEYS);
@@ -415,8 +415,14 @@
     currentIndex = 0;
     score = { correct: 0, wrong: 0 };
     wrongQuestions = [];
+    answers = [];
     showScreen('quiz');
     renderQuestion();
+  }
+
+  function recalcScore() {
+    score.correct = answers.filter(a => a?.correct).length;
+    score.wrong = answers.filter(a => a !== undefined && !a.correct).length;
   }
 
   // ── HEADER ──
@@ -431,8 +437,9 @@
   function renderQuestion() {
     if (currentIndex >= questions.length) { showResults(); return; }
     const q = questions[currentIndex];
-    subAnswers = {};
-    answered = false;
+    const pre = answers[currentIndex];
+    subAnswers = pre?.subAnswers ? { ...pre.subAnswers } : {};
+    answered = pre !== undefined;
     updateHeader();
 
     const body = document.getElementById('quiz-body');
@@ -458,8 +465,8 @@
     meta.appendChild(numEl);
     card.appendChild(meta);
 
-    if (q.type === 'M') renderM(card, body, q);
-    else renderS(card, body, q);
+    if (q.type === 'M') renderM(card, body, q, pre);
+    else renderS(card, body, q, pre);
   }
 
   function furiganaToRuby(text) {
@@ -496,7 +503,7 @@
   }
 
   // ── S-TYPE ──
-  function renderS(card, body, q) {
+  function renderS(card, body, q, pre) {
     addTextPair(card, q.question_vi || q.question, q.question_furigana || q.question, 'question-vi', 'question-ja');
     addImage(card, q.image);
     body.appendChild(card);
@@ -510,31 +517,51 @@
     row.appendChild(fBtn);
     body.appendChild(row);
 
-    [tBtn, fBtn].forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (answered) return;
-        answered = true;
-        tBtn.disabled = true;
-        fBtn.disabled = true;
-        const userTrue = btn === tBtn;
-        const correct = userTrue === q.correct;
+    if (pre) {
+      // Review mode: show saved result
+      tBtn.disabled = true;
+      fBtn.disabled = true;
+      (q.correct ? tBtn : fBtn).classList.add('correct-ans');
+      if (!pre.correct) (pre.userAnswer ? tBtn : fBtn).classList.add('wrong-ans');
+      body.appendChild(makeExpCard(
+        pre.correct,
+        `Đáp án đúng: ${q.correct ? '○' : '×'}`,
+        q.explanation_vi || q.explanation,
+        q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
+      ));
+      addNavBtns(body);
+    } else {
+      const navDiv = document.createElement('div');
+      navDiv.appendChild(makePrevBtn());
+      body.appendChild(navDiv);
 
-        (q.correct ? tBtn : fBtn).classList.add('correct-ans');
-        if (!correct) btn.classList.add('wrong-ans');
+      [tBtn, fBtn].forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          tBtn.disabled = true;
+          fBtn.disabled = true;
+          const userTrue = btn === tBtn;
+          const correct = userTrue === q.correct;
 
-        if (correct) score.correct++; else { score.wrong++; wrongQuestions.push(q); }
-        updateHeader();
+          (q.correct ? tBtn : fBtn).classList.add('correct-ans');
+          if (!correct) btn.classList.add('wrong-ans');
 
-        const expCard = makeExpCard(
-          correct,
-          `Đáp án đúng: ${q.correct ? '○' : '×'}`,
-          q.explanation_vi || q.explanation,
-          q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
-        );
-        body.appendChild(expCard);
-        addNextBtn(body);
+          answers[currentIndex] = { correct, userAnswer: userTrue };
+          recalcScore();
+          updateHeader();
+
+          body.appendChild(makeExpCard(
+            correct,
+            `Đáp án đúng: ${q.correct ? '○' : '×'}`,
+            q.explanation_vi || q.explanation,
+            q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
+          ));
+          fillNavBtns(navDiv);
+          setTimeout(() => navDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+        });
       });
-    });
+    }
   }
 
   function makeAnswerBtn(text, val) {
@@ -546,7 +573,7 @@
   }
 
   // ── M-TYPE ──
-  function renderM(card, body, q) {
+  function renderM(card, body, q, pre) {
     const scenLabel = document.createElement('div');
     scenLabel.style.cssText = 'font-size:11px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px;';
     scenLabel.textContent = 'Tình huống';
@@ -590,18 +617,28 @@
 
       subBtns[sub.sub_number] = { tBtn, fBtn };
 
-      [tBtn, fBtn].forEach(b => {
-        b.addEventListener('click', () => {
-          if (answered) return;
-          const isTrue = b === tBtn;
-          subAnswers[sub.sub_number] = isTrue;
-          tBtn.classList.toggle('sel-true', isTrue);
-          tBtn.classList.toggle('sel-false', false);
-          fBtn.classList.toggle('sel-false', !isTrue);
-          fBtn.classList.toggle('sel-true', false);
-          checkBtn.disabled = !q.sub_questions.every(sq => subAnswers[sq.sub_number] !== undefined);
+      if (pre) {
+        // Review mode: apply saved state
+        tBtn.disabled = true;
+        fBtn.disabled = true;
+        const userAns = pre.subAnswers[sub.sub_number];
+        const correct = userAns === sub.correct;
+        (sub.correct ? tBtn : fBtn).classList.add('res-correct');
+        if (!correct) (userAns ? tBtn : fBtn).classList.add('res-wrong');
+      } else {
+        [tBtn, fBtn].forEach(b => {
+          b.addEventListener('click', () => {
+            if (answered) return;
+            const isTrue = b === tBtn;
+            subAnswers[sub.sub_number] = isTrue;
+            tBtn.classList.toggle('sel-true', isTrue);
+            tBtn.classList.toggle('sel-false', false);
+            fBtn.classList.toggle('sel-false', !isTrue);
+            fBtn.classList.toggle('sel-true', false);
+            checkBtn.disabled = !q.sub_questions.every(sq => subAnswers[sq.sub_number] !== undefined);
+          });
         });
-      });
+      }
 
       btns.appendChild(tBtn);
       btns.appendChild(fBtn);
@@ -612,45 +649,58 @@
 
     body.appendChild(subContainer);
 
-    const checkBtn = document.createElement('button');
-    checkBtn.className = 'check-btn';
-    checkBtn.textContent = 'Kiểm tra đáp án';
-    checkBtn.disabled = true;
-    body.appendChild(checkBtn);
-
-    checkBtn.addEventListener('click', () => {
-      if (answered) return;
-      answered = true;
-      checkBtn.disabled = true;
-
-      let allCorrect = true;
-      q.sub_questions.forEach(sub => {
-        const userAns = subAnswers[sub.sub_number];
-        const correct = userAns === sub.correct;
-        if (!correct) allCorrect = false;
-
-        const { tBtn, fBtn } = subBtns[sub.sub_number];
-        tBtn.disabled = true;
-        fBtn.disabled = true;
-        tBtn.classList.remove('sel-true', 'sel-false');
-        fBtn.classList.remove('sel-true', 'sel-false');
-
-        (sub.correct ? tBtn : fBtn).classList.add('res-correct');
-        if (!correct) (userAns ? tBtn : fBtn).classList.add('res-wrong');
-      });
-
-      if (allCorrect) score.correct++; else { score.wrong++; wrongQuestions.push(q); }
-      updateHeader();
-
-      const expCard = makeExpCard(
-        allCorrect,
-        null,
+    if (pre) {
+      body.appendChild(makeExpCard(
+        pre.correct, null,
         q.explanation_vi || q.explanation,
         q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
-      );
-      body.appendChild(expCard);
-      addNextBtn(body);
-    });
+      ));
+      addNavBtns(body);
+    } else {
+      const checkBtn = document.createElement('button');
+      checkBtn.className = 'check-btn';
+      checkBtn.textContent = 'Kiểm tra đáp án';
+      checkBtn.disabled = true;
+      body.appendChild(checkBtn);
+
+      const navDiv = document.createElement('div');
+      navDiv.appendChild(makePrevBtn());
+      body.appendChild(navDiv);
+
+      checkBtn.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        checkBtn.disabled = true;
+
+        let allCorrect = true;
+        q.sub_questions.forEach(sub => {
+          const userAns = subAnswers[sub.sub_number];
+          const correct = userAns === sub.correct;
+          if (!correct) allCorrect = false;
+
+          const { tBtn, fBtn } = subBtns[sub.sub_number];
+          tBtn.disabled = true;
+          fBtn.disabled = true;
+          tBtn.classList.remove('sel-true', 'sel-false');
+          fBtn.classList.remove('sel-true', 'sel-false');
+
+          (sub.correct ? tBtn : fBtn).classList.add('res-correct');
+          if (!correct) (userAns ? tBtn : fBtn).classList.add('res-wrong');
+        });
+
+        answers[currentIndex] = { correct: allCorrect, subAnswers: { ...subAnswers } };
+        recalcScore();
+        updateHeader();
+
+        body.appendChild(makeExpCard(
+          allCorrect, null,
+          q.explanation_vi || q.explanation,
+          q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
+        ));
+        fillNavBtns(navDiv);
+        setTimeout(() => navDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+      });
+    }
   }
 
   // ── EXPLANATION CARD ──
@@ -694,18 +744,48 @@
     return card;
   }
 
-  // ── NEXT BUTTON ──
-  function addNextBtn(body) {
+  // ── NAV BUTTONS (prev + next) ──
+  function makePrevBtn() {
     const btn = document.createElement('button');
-    btn.className = 'next-btn';
-    btn.textContent = currentIndex + 1 >= questions.length ? 'Xem kết quả →' : 'Câu tiếp theo →';
-    btn.addEventListener('click', () => { currentIndex++; renderQuestion(); });
-    body.appendChild(btn);
-    setTimeout(() => btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+    btn.style.cssText = 'display:block;width:100%;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-weight:600;background:white;cursor:pointer;color:var(--text);margin-bottom:24px;';
+    btn.textContent = '← Câu trước';
+    btn.disabled = currentIndex === 0;
+    if (currentIndex === 0) btn.style.opacity = '0.3';
+    btn.addEventListener('click', () => { currentIndex--; renderQuestion(); });
+    return btn;
+  }
+
+  function fillNavBtns(container) {
+    container.innerHTML = '';
+    container.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.style.cssText = 'padding:14px;border:2px solid var(--border);border-radius:10px;font-size:15px;font-weight:600;background:white;cursor:pointer;color:var(--text);';
+    prevBtn.textContent = '← Câu trước';
+    prevBtn.disabled = currentIndex === 0;
+    if (currentIndex === 0) prevBtn.style.opacity = '0.3';
+    prevBtn.addEventListener('click', () => { currentIndex--; renderQuestion(); });
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'next-btn';
+    nextBtn.style.margin = '0';
+    nextBtn.textContent = currentIndex + 1 >= questions.length ? 'Xem kết quả →' : 'Câu tiếp →';
+    nextBtn.addEventListener('click', () => { currentIndex++; renderQuestion(); });
+
+    container.appendChild(prevBtn);
+    container.appendChild(nextBtn);
+  }
+
+  function addNavBtns(body) {
+    const div = document.createElement('div');
+    body.appendChild(div);
+    fillNavBtns(div);
+    setTimeout(() => div.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
   }
 
   // ── RESULTS ──
   function showResults() {
+    wrongQuestions = questions.filter((q, i) => answers[i] !== undefined && !answers[i].correct);
     showScreen('results');
     const total = questions.length;
     const pct = Math.round((score.correct / total) * 100);
