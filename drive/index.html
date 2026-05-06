@@ -803,6 +803,21 @@
     retryWrong.disabled = wrongQuestions.length === 0;
   }
 
+  // ── SWIPE ──
+  let touchStartX = 0;
+  let touchStartY = 0;
+  document.getElementById('quiz-screen').addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].clientX;
+    touchStartY = e.changedTouches[0].clientY;
+  }, { passive: true });
+  document.getElementById('quiz-screen').addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx)) return; // too short or mostly vertical
+    if (dx < 0 && answered) { currentIndex++; renderQuestion(); }  // swipe left → next
+    else if (dx > 0 && currentIndex > 0) { currentIndex--; renderQuestion(); } // swipe right → prev
+  }, { passive: true });
+
   init();
 </script>
 </body>
