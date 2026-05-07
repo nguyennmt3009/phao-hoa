@@ -328,7 +328,7 @@
 
 </div>
 <script>
-  const KEYS = ['honmen1','honmen2','honmen3','honmen4','honmen5','honmen6','honmen7','honmen8'];
+  let KEYS = [];
   let data = {};
   let questions = [];
   let currentIndex = 0;
@@ -337,13 +337,21 @@
   let answers = []; // answers[i] = {correct, userAnswer?, subAnswers?}
   let subAnswers = {};
   let answered = false;
-  let selectedKeys = new Set(KEYS);
+  let selectedKeys = new Set();
+
+  function keyLabel(key) {
+    const m = key.match(/^(honmen|kanagawa)(\d+)$/);
+    if (!m) return key;
+    return (m[1] === 'honmen' ? 'Đề' : 'KNG') + ' ' + m[2];
+  }
 
   // ── INIT ──
   async function init() {
     try {
       const res = await fetch('./questions.json');
       data = await res.json();
+      KEYS = Object.keys(data);
+      selectedKeys = new Set(KEYS);
       buildHonmenButtons();
     } catch {
       document.getElementById('setup-screen').innerHTML = `
@@ -364,7 +372,7 @@
       const btn = document.createElement('button');
       btn.className = 'honmen-btn selected';
       btn.dataset.key = key;
-      btn.textContent = `Đề ${i + 1}`;
+      btn.textContent = keyLabel(key);
       btn.addEventListener('click', () => {
         if (selectedKeys.has(key)) { selectedKeys.delete(key); btn.classList.remove('selected'); }
         else { selectedKeys.add(key); btn.classList.add('selected'); }
@@ -390,6 +398,8 @@
   function updateCount() {
     let n = 0;
     selectedKeys.forEach(k => n += (data[k] || []).length);
+    const total = KEYS.reduce((s, k) => s + (data[k] || []).length, 0);
+    document.getElementById('btn-all').textContent = `Tất cả (${total} câu)`;
     document.getElementById('selected-count').textContent = n > 0 ? `${n} câu được chọn` : 'Chưa chọn đề nào';
     document.getElementById('start-btn').disabled = n === 0;
   }
@@ -551,12 +561,12 @@
           recalcScore();
           updateHeader();
 
-          body.appendChild(makeExpCard(
+          body.insertBefore(makeExpCard(
             correct,
             `Đáp án đúng: ${q.correct ? '○' : '×'}`,
             q.explanation_vi || q.explanation,
             q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
-          ));
+          ), navDiv);
           fillNavBtns(navDiv);
           setTimeout(() => navDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
         });
@@ -585,6 +595,10 @@
 
     const subBtns = {};
     const subContainer = document.createElement('div');
+    const checkBtn = document.createElement('button');
+    checkBtn.className = 'check-btn';
+    checkBtn.textContent = 'Kiểm tra đáp án';
+    checkBtn.disabled = true;
 
     q.sub_questions.forEach(sub => {
       const el = document.createElement('div');
@@ -657,10 +671,6 @@
       ));
       addNavBtns(body);
     } else {
-      const checkBtn = document.createElement('button');
-      checkBtn.className = 'check-btn';
-      checkBtn.textContent = 'Kiểm tra đáp án';
-      checkBtn.disabled = true;
       body.appendChild(checkBtn);
 
       const navDiv = document.createElement('div');
@@ -692,11 +702,11 @@
         recalcScore();
         updateHeader();
 
-        body.appendChild(makeExpCard(
+        body.insertBefore(makeExpCard(
           allCorrect, null,
           q.explanation_vi || q.explanation,
           q.explanation_vi ? (q.explanation_furigana || q.explanation) : null
-        ));
+        ), navDiv);
         fillNavBtns(navDiv);
         setTimeout(() => navDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
       });
