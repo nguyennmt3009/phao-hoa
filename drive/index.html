@@ -340,9 +340,10 @@
   let selectedKeys = new Set();
 
   function keyLabel(key) {
-    const m = key.match(/^(honmen|kanagawa)(\d+)$/);
+    const m = key.match(/^(honmen|kanagawa|tokyo)(\d+)$/);
     if (!m) return key;
-    return (m[1] === 'honmen' ? 'Đề' : 'KNG') + ' ' + m[2];
+    const prefix = { honmen: 'Đề', kanagawa: 'Đề Kanagawa', tokyo: 'Đề Tokyo' }[m[1]];
+    return prefix + ' ' + m[2];
   }
 
   // ── INIT ──
